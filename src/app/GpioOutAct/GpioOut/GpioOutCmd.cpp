@@ -192,27 +192,49 @@ static CmdStatus On(Console &console, Evt const *e) {
         case Console::CONSOLE_CMD: {
             Console::ConsoleCmd const &ind = static_cast<Console::ConsoleCmd const &>(*e);
             if (ind.Argc() >= 2) {
-                uint32_t pattern = STRING_TO_NUM(ind.Argv(1), 0);
+                uint32_t patternIndex = STRING_TO_NUM(ind.Argv(1), 0);
                 bool repeat = true;
                 if (ind.Argc() >= 3 && STRING_EQUAL(ind.Argv(2), "0")) {
                     repeat = false;
                 }
-                console.Print("pattern = %d, repeat = %d\n\r", pattern, repeat);
+                console.Print("pattern = %d, repeat = %d\n\r", patternIndex, repeat);
                 // Assignment 2 - Implement the command to display the indexed pattern. If repeat is "0", it is shown once;
                 //           otherwise it is shown 5 times. Handle the case when the index is out of range.
                 //           As a reminder, the set of LED patterns is defined in the structure TEST_LED_PATTERN_SET.
                 // Sample code to show how to use the API to control LED brightness and add delay. Please remove or comment
                 // it when adding your own code.
-                // Beginning sample code.
+
                 InitGpio();
-                ConfigPwm(1000);
-                Delay(200);
-                ConfigPwm(0);
-                Delay(200);
-                ConfigPwm(200);
-                Delay(200);
-                ConfigPwm(0);
-                // End sample code.
+
+                uint32_t patternSetCount = APP::TEST_GPIO_PATTERN_SET.GetCount();
+
+                if(patternSetCount < patternIndex)
+                {
+                    console.Print("Pattern Index Out of Range. Try again please.\n\r");
+                }
+                else
+                {
+                    const GpioPattern* pattern = APP::TEST_GPIO_PATTERN_SET.GetPattern(patternIndex);
+                    uint32_t intervalCount = pattern->GetCount();
+
+                    uint32_t repeatCount = 5;
+
+                    if (repeat == 0)
+                	{
+                    	repeatCount = 1;
+                	}
+
+            		for(uint32_t i = 0; i < repeatCount; i++)
+            		{
+            			for (uint32_t j = 0; j<intervalCount; j++)
+            			{
+                            ConfigPwm(pattern->GetInterval(j).GetLevelPermil());
+                            Delay(pattern->GetInterval(j).GetDurationMs());
+            			}
+            		}
+
+               	}
+
                 return CMD_DONE;
             }
             console.Print("led on <pattern idx> [0=once,*other=repeat]\n\r");

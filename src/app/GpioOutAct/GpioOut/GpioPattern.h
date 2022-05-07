@@ -19,48 +19,58 @@ public:
     uint16_t GetDurationMs() const { return m_durationMs; }
 };
 
-class GpioPattern {
+class GpioPattern
+{
 public:
-    enum {
+    enum
+	{
         COUNT = 256
     };
     uint32_t m_count;                // Number of intervals in use.
     GpioInterval m_interval[COUNT];   // Array of intervals. Used ones start from index 0.
     
     // Assignment 2
-    /*
-    uint32_t GetCount() const { 
-        return ...
+    uint32_t GetCount() const
+    {
+        return m_count;
     }
 
     // Returns a reference to the indexed GPIO interval object.
-    // Use GPIO_PATTERN_ASSERT() to ensure index is in range.
-    GpioInterval const &GetInterval(uint32_t index) const {
-        return ...
+	// Use GPIO_PATTERN_ASSERT() to ensure index is in range.
+    GpioInterval const &GetInterval(uint32_t index) const
+    {
+    	GPIO_PATTERN_ASSERT(0 <= index && index < m_count);
+        return m_interval[index];
     }
-    */
+
 };
 
-class GpioPatternSet {
+class GpioPatternSet
+{
 public:
-    enum {
+    enum
+	{
         COUNT = 4                   // Maximum number of patterns supported.
     };
     uint32_t m_count;               // Number of patterns in use.
     GpioPattern m_pattern[COUNT];   // Array of patterns. Used ones start from index 0.
     
     // Assignment 2
-    /*
-    uint32_t GetCount() const {
-        return ...
+    uint32_t GetCount() const
+    {
+        return m_count;
     }
 
     // Returns NULL if index is out-of-range. Otherwise returns a pointer to the indexed LED pattern object.
-    GpioPattern const *GetPattern(uint32_t index) const {
-        ...
-        return ...
+    GpioPattern const *GetPattern(uint32_t index) const
+    {
+        if (0 > index || index >= m_count)
+        {
+        	return NULL;
+        }
+        return &m_pattern[index];
     }
-    */
+
 };
 
 extern GpioPatternSet const TEST_GPIO_PATTERN_SET;

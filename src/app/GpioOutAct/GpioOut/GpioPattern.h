@@ -39,7 +39,7 @@ public:
 	// Use GPIO_PATTERN_ASSERT() to ensure index is in range.
     GpioInterval const &GetInterval(uint32_t index) const
     {
-    	GPIO_PATTERN_ASSERT(0 <= index && index < m_count);
+    	GPIO_PATTERN_ASSERT(index < m_count);
         return m_interval[index];
     }
 
@@ -64,7 +64,7 @@ public:
     // Returns NULL if index is out-of-range. Otherwise returns a pointer to the indexed LED pattern object.
     GpioPattern const *GetPattern(uint32_t index) const
     {
-        if (0 > index || index >= m_count)
+        if (index >= m_count)
         {
         	return NULL;
         }

@@ -281,10 +281,10 @@ QState GpioOut::Started(GpioOut * const me, QEvt const * const e) {
             GpioOutPatternReq const &req = static_cast<GpioOutPatternReq const &>(*e);
             GpioPattern const *pattern = me->m_config->patternSet.GetPattern(req.GetPatternIndex());
             if (pattern) {
-                // Implement statechart.
-            	m_isRepeat = req.IsRepeat();
-            	m_intervalIndex = 0;
-            	m_currPattern = pattern;
+                // Implemented statechart.
+            	me->m_isRepeat = req.IsRepeat();
+            	me->m_intervalIndex = 0;
+            	me->m_currPattern = pattern;
                 me->SendCfm(new GpioOutPatternCfm(ERROR_SUCCESS), req);
                 return Q_TRAN(&GpioOut::Active);
             } else {
@@ -323,7 +323,15 @@ QState GpioOut::Active(GpioOut * const me, QEvt const * const e) {
             EVENT(e);
             FW_ASSERT(me->m_currPattern);
             // Assignment 3
-            // Implement statechart.
+            // Implemented statechart.
+
+            //currInterval = indexed interval,
+            GpioInterval const *currInterval = me->m_currPattern->GetInterval(me->m_intervalIndex);
+            //start m_intervalTimer(currInterval.duration),
+            me->m_intervalTimer.Start(currInterval->GetDurationMs());
+            //ConfigPwm(currInterval.level)
+            me->ConfigPwm(currInterval->GetLevelPermil());
+
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {

@@ -421,6 +421,7 @@ QState GpioOut::Once(GpioOut * const me, QEvt const * const e) {
             EVENT(e);
             // Assignment 3
             // Implement statechart. Call "me->Raise(new Evt(XXX))" to send an internal event.
+            me->Raise(new Evt(DONE));
             return Q_HANDLED();
         }        
     }

@@ -356,11 +356,17 @@ QState GpioOut::Active(GpioOut * const me, QEvt const * const e) {
         case INTERVAL_TIMER: {
             EVENT(e);
             // Assignment 3
-            /*
             uint32_t intervalCount = me->m_currPattern->GetCount();
             FW_ASSERT(intervalCount > 0);
-            // Implement statechart. Call "me->Raise(new Evt(XXX))" to send an internal event.
-            */
+
+            // Implemented statechart.
+            //INTERVAL_TIMER[m_intervalIndex < m_currPattern.count-1]/ Raise(NEXT_INTERVAL)
+            //INTERVAL_TIMER[m_intervalIndex == m_currPattern.count-1]/ Raise(LAST_INTERVAL)
+            if (me->m_intervalIndex < intervalCount - 1){
+            	me->Raise(new Evt(NEXT_INTERVAL));
+            } else if (me->m_intervalIndex == intervalCount - 1){
+            	me->Raise(new Evt(LAST_INTERVAL));            	
+            }
             return Q_HANDLED();
         }
         case NEXT_INTERVAL: {

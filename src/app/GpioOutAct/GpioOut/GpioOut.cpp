@@ -365,20 +365,24 @@ QState GpioOut::Active(GpioOut * const me, QEvt const * const e) {
             if (me->m_intervalIndex < intervalCount - 1){
             	me->Raise(new Evt(NEXT_INTERVAL));
             } else if (me->m_intervalIndex == intervalCount - 1){
-            	me->Raise(new Evt(LAST_INTERVAL));            	
+            	me->Raise(new Evt(LAST_INTERVAL));
             }
             return Q_HANDLED();
         }
         case NEXT_INTERVAL: {
             EVENT(e);
             // Assignment 3
-            // Implement statechart.
+            // Implemented statechart.
+            //m_intervalIndex++
+            me->m_intervalIndex++;
             return Q_TRAN(&GpioOut::Active);
         }
         case LAST_INTERVAL: {
             EVENT(e);
             // Assignment 3
-            // Implement statechart.
+            // Implemented statechart.
+            //m_intervalIndex = 0
+            me->m_intervalIndex = 0;
             return Q_TRAN(&GpioOut::Active);
         }       
         case DONE: {

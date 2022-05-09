@@ -276,13 +276,15 @@ QState GpioOut::Started(GpioOut * const me, QEvt const * const e) {
             return Q_TRAN(&GpioOut::Stopped);
         }
         // Assignment 3
-        /*
         case GPIO_OUT_PATTERN_REQ: {
             EVENT(e);
             GpioOutPatternReq const &req = static_cast<GpioOutPatternReq const &>(*e);
             GpioPattern const *pattern = me->m_config->patternSet.GetPattern(req.GetPatternIndex());
             if (pattern) {
                 // Implement statechart.
+            	m_isRepeat = req.IsRepeat();
+            	m_intervalIndex = 0;
+            	m_currPattern = pattern;
                 me->SendCfm(new GpioOutPatternCfm(ERROR_SUCCESS), req);
                 return Q_TRAN(&GpioOut::Active);
             } else {
@@ -290,7 +292,6 @@ QState GpioOut::Started(GpioOut * const me, QEvt const * const e) {
                 return Q_HANDLED();
             }
         }
-        */
     }
     return Q_SUPER(&GpioOut::Root);
 }

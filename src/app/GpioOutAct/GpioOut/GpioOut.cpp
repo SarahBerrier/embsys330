@@ -326,11 +326,11 @@ QState GpioOut::Active(GpioOut * const me, QEvt const * const e) {
             // Implemented statechart.
 
             //currInterval = indexed interval,
-            GpioInterval const *currInterval = me->m_currPattern->GetInterval(me->m_intervalIndex);
             //start m_intervalTimer(currInterval.duration),
-            me->m_intervalTimer.Start(currInterval->GetDurationMs());
             //ConfigPwm(currInterval.level)
-            me->ConfigPwm(currInterval->GetLevelPermil());
+            GpioInterval const currInterval = me->m_currPattern->GetInterval(me->m_intervalIndex);
+            me->m_intervalTimer.Start(currInterval.GetDurationMs());
+            me->ConfigPwm(currInterval.GetLevelPermil());
 
             return Q_HANDLED();
         }
@@ -420,7 +420,7 @@ QState GpioOut::Once(GpioOut * const me, QEvt const * const e) {
         case LAST_INTERVAL: {
             EVENT(e);
             // Assignment 3
-            // Implement statechart. Call "me->Raise(new Evt(XXX))" to send an internal event.
+            // Implemented statechart. Call "me->Raise(new Evt(XXX))" to send an internal event.
             me->Raise(new Evt(DONE));
             return Q_HANDLED();
         }        

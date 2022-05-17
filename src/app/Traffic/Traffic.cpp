@@ -170,6 +170,7 @@ QState Traffic::NSGo(Traffic *me, QEvt const *e) {
             me->Send(new LampGreenReq(), LAMP_NS);
             minDurationDone = false;
             me->m_minDurationTimer.Start(NS_MIN_DURATION_TIMEOUT_MS);
+            PRINT("Minimum duration start for NS\r\n");
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
@@ -179,15 +180,19 @@ QState Traffic::NSGo(Traffic *me, QEvt const *e) {
         case TRAFFIC_CAR_EW_REQ: {
             EVENT(e);
             ewCarQueued = true;
+            PRINT("EW Requested\r\n");
             if(minDurationDone){
+                PRINT("EW Request and min duration done\r\n");
             	ewCarQueued = false;
                 return Q_TRAN(&Traffic::NSSlow);
             }
+            PRINT("EW Request and min duration not done\r\n");
             return Q_HANDLED();
         }
         case MIN_TIMER: {
             EVENT(e);
             minDurationDone = true;
+            PRINT("Minimum duration end for NS\r\n");
             if (ewCarQueued){
                 return Q_TRAN(&Traffic::NSSlow);//sarah do I want to raise the TRAFFIC_CAR_EW_REQ request again instead of this transition?
             }
@@ -228,6 +233,7 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
             EVENT(e);
             me->Send(new LampRedReq(), LAMP_NS);
             me->Send(new LampGreenReq(), LAMP_EW);
+            PRINT("Minimum duration start for EW\r\n");
             minDurationDone = false;
             me->m_minDurationTimer.Start(EW_MIN_DURATION_TIMEOUT_MS);
             return Q_HANDLED();
@@ -240,15 +246,18 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
             EVENT(e);
             nsCarQueued = true;
             if(minDurationDone){
+                PRINT("NS Request and min duration done\r\n");
             	nsCarQueued = false;
             	return Q_TRAN(&Traffic::EWSlow);
             }
+            PRINT("NS Request and min duration not done\r\n");
             return Q_HANDLED();
         }
         case MIN_TIMER: {
             EVENT(e);
             minDurationDone = true;
-            if (ewCarQueued){
+            PRINT("Minimum duration end for EW\r\n");
+            if (nsCarQueued){
                 return Q_TRAN(&Traffic::EWSlow);//sarah do I want to raise the TRAFFIC_CAR_NS_REQ request again instead of this transition?
             }
             return Q_HANDLED();

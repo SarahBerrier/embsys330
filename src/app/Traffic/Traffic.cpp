@@ -1,4 +1,3 @@
-/*******************************************************************************
  * Copyright (C) Gallium Studio LLC. All rights reserved.
  *
  * This program is open source software: you can redistribute it and/or
@@ -69,7 +68,7 @@ static char const * const interfaceEvtName[] = {
 Traffic::Traffic() :
     Active((QStateHandler)&Traffic::InitialPseudoState, TRAFFIC, "TRAFFIC"),
     m_lampNS(LAMP_NS, "LAMP_NS"), m_lampEW(LAMP_EW, "LAMP_EW"),
-    m_waitTimer(GetHsmn(), WAIT_TIMER) {
+    m_waitTimer(GetHsmn(), WAIT_TIMER), m_minDurationTimer(GetHsmn(), MIN_TIMER) {
     SET_EVT_NAME(TRAFFIC);
 }
 
@@ -161,11 +160,16 @@ QState Traffic::Started(Traffic * const me, QEvt const * const e) {
 }
 
 QState Traffic::NSGo(Traffic *me, QEvt const *e) {
+	bool minDurationDone = false;
+	bool ewCarQueued = false;
+
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
             me->Send(new LampRedReq(), LAMP_EW);
             me->Send(new LampGreenReq(), LAMP_NS);
+            minDurationDone = false;
+            me->m_minDurationTimer.Start(NS_MIN_DURATION_TIMEOUT_MS);
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
@@ -174,7 +178,20 @@ QState Traffic::NSGo(Traffic *me, QEvt const *e) {
         }
         case TRAFFIC_CAR_EW_REQ: {
             EVENT(e);
-            return Q_TRAN(&Traffic::NSSlow);
+            ewCarQueued = true;
+            if(minDurationDone){
+            	ewCarQueued = false;
+                return Q_TRAN(&Traffic::NSSlow);
+            }
+            return Q_HANDLED();
+        }
+        case MIN_TIMER: {
+            EVENT(e);
+            minDurationDone = true;
+            if (ewCarQueued){
+                return Q_TRAN(&Traffic::NSSlow);//sarah do I want to raise the TRAFFIC_CAR_EW_REQ request again instead of this transition?
+            }
+            return Q_HANDLED();
         }
     }
     return Q_SUPER(&Traffic::Started);;
@@ -202,12 +219,17 @@ QState Traffic::NSSlow(Traffic *me, QEvt const *e) {
 }
 
 QState Traffic::EWGo(Traffic *me, QEvt const *e) {
-    switch (e->sig)
+	bool minDurationDone = false;
+	bool nsCarQueued = false;
+
+	switch (e->sig)
     {
         case Q_ENTRY_SIG: {
             EVENT(e);
             me->Send(new LampRedReq(), LAMP_NS);
             me->Send(new LampGreenReq(), LAMP_EW);
+            minDurationDone = false;
+            me->m_minDurationTimer.Start(EW_MIN_DURATION_TIMEOUT_MS);
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
@@ -216,7 +238,20 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
         }
         case TRAFFIC_CAR_NS_REQ: {
             EVENT(e);
-            return Q_TRAN(&Traffic::EWSlow);
+            nsCarQueued = true;
+            if(minDurationDone){
+            	nsCarQueued = false;
+            	return Q_TRAN(&Traffic::EWSlow);
+            }
+            return Q_HANDLED();
+        }
+        case MIN_TIMER: {
+            EVENT(e);
+            minDurationDone = true;
+            if (ewCarQueued){
+                return Q_TRAN(&Traffic::EWSlow);//sarah do I want to raise the TRAFFIC_CAR_NS_REQ request again instead of this transition?
+            }
+            return Q_HANDLED();
         }
     }
     return Q_SUPER(&Traffic::Started);

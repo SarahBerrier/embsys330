@@ -175,6 +175,7 @@ QState Traffic::NSGo(Traffic *me, QEvt const *e) {
         }
         case Q_EXIT_SIG: {
             EVENT(e);
+            me->m_minDurationTimer.Stop();
             return Q_HANDLED();
         }
         case TRAFFIC_CAR_EW_REQ: {
@@ -194,7 +195,7 @@ QState Traffic::NSGo(Traffic *me, QEvt const *e) {
             minDurationDone = true;
             PRINT("Minimum duration end for NS\r\n");
             if (ewCarQueued){
-                return Q_TRAN(&Traffic::NSSlow);//sarah do I want to raise the TRAFFIC_CAR_EW_REQ request again instead of this transition?
+            	me->Raise(new Evt(TRAFFIC_CAR_EW_REQ));
             }
             return Q_HANDLED();
         }
@@ -240,6 +241,7 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
         }
         case Q_EXIT_SIG: {
             EVENT(e);
+            me->m_minDurationTimer.Stop();
             return Q_HANDLED();
         }
         case TRAFFIC_CAR_NS_REQ: {
@@ -258,7 +260,7 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
             minDurationDone = true;
             PRINT("Minimum duration end for EW\r\n");
             if (nsCarQueued){
-                return Q_TRAN(&Traffic::EWSlow);//sarah do I want to raise the TRAFFIC_CAR_NS_REQ request again instead of this transition?
+            	me->Raise(new Evt(TRAFFIC_CAR_NS_REQ));
             }
             return Q_HANDLED();
         }

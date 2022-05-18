@@ -241,7 +241,10 @@ entry/ Send(LAMP_RED_REQ, LAMP_NS),
        Send(LAMP_GREEN_REQ, LAMP_EW),
        m_ewMinDurationDone = false,
        start m_minDurationTimer(10s)
-exit/ stop m_minDurationTimer
+       start m_ewTrafficTimer(15s)
+exit/ stop m_minDurationTimer,
+      stop m_ewTrafficTimer
+TRAFFIC_CAR_EW_REQ/ restart m_ewTrafficTimer
 MIN_TIMER[m_nsCarQueued]/ Send(TRAFFIC_CAR_NS_REQ)
 
 valign=top
@@ -751,6 +754,29 @@ valign=top
       <h>27</h>
     </coordinates>
     <panel_attributes>LAMP_OFF_REQ
+style=wordwrap</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>360</x>
+      <y>801</y>
+      <w>27</w>
+      <h>108</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>243</x>
+      <y>846</y>
+      <w>117</w>
+      <h>27</h>
+    </coordinates>
+    <panel_attributes>EW_TRAFFIC_TIMER
 style=wordwrap</panel_attributes>
     <additional_attributes/>
   </element>

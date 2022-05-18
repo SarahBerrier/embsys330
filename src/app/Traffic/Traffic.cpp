@@ -1,3 +1,4 @@
+/*******************************************************************************
  * Copyright (C) Gallium Studio LLC. All rights reserved.
  *
  * This program is open source software: you can redistribute it and/or
@@ -160,15 +161,12 @@ QState Traffic::Started(Traffic * const me, QEvt const * const e) {
 }
 
 QState Traffic::NSGo(Traffic *me, QEvt const *e) {
-	bool minDurationDone = false;
-	bool ewCarQueued = false;
-
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
             me->Send(new LampRedReq(), LAMP_EW);
             me->Send(new LampGreenReq(), LAMP_NS);
-            minDurationDone = false;
+            me->m_nsMinDurationDone = false;
             me->m_minDurationTimer.Start(NS_MIN_DURATION_TIMEOUT_MS);
             PRINT("Minimum duration start for NS\r\n");
             return Q_HANDLED();
@@ -180,11 +178,11 @@ QState Traffic::NSGo(Traffic *me, QEvt const *e) {
         }
         case TRAFFIC_CAR_EW_REQ: {
             EVENT(e);
-            ewCarQueued = true;
+            me->m_ewCarQueued = true;
             PRINT("EW Requested\r\n");
-            if(minDurationDone){
+            if(me->m_nsMinDurationDone){
                 PRINT("EW Request and min duration done\r\n");
-            	ewCarQueued = false;
+                me->m_ewCarQueued = false;
                 return Q_TRAN(&Traffic::NSSlow);
             }
             PRINT("EW Request and min duration not done\r\n");
@@ -192,9 +190,9 @@ QState Traffic::NSGo(Traffic *me, QEvt const *e) {
         }
         case MIN_TIMER: {
             EVENT(e);
-            minDurationDone = true;
+            me->m_nsMinDurationDone = true;
             PRINT("Minimum duration end for NS\r\n");
-            if (ewCarQueued){
+            if (me->m_ewCarQueued){
             	me->Raise(new Evt(TRAFFIC_CAR_EW_REQ));
             }
             return Q_HANDLED();
@@ -225,9 +223,6 @@ QState Traffic::NSSlow(Traffic *me, QEvt const *e) {
 }
 
 QState Traffic::EWGo(Traffic *me, QEvt const *e) {
-	bool minDurationDone = false;
-	bool nsCarQueued = false;
-
 	switch (e->sig)
     {
         case Q_ENTRY_SIG: {
@@ -235,7 +230,7 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
             me->Send(new LampRedReq(), LAMP_NS);
             me->Send(new LampGreenReq(), LAMP_EW);
             PRINT("Minimum duration start for EW\r\n");
-            minDurationDone = false;
+            me->m_ewMinDurationDone = false;
             me->m_minDurationTimer.Start(EW_MIN_DURATION_TIMEOUT_MS);
             return Q_HANDLED();
         }
@@ -246,10 +241,10 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
         }
         case TRAFFIC_CAR_NS_REQ: {
             EVENT(e);
-            nsCarQueued = true;
-            if(minDurationDone){
+            me->m_nsCarQueued = true;
+            if(me->m_ewMinDurationDone){
                 PRINT("NS Request and min duration done\r\n");
-            	nsCarQueued = false;
+                me->m_nsCarQueued = false;
             	return Q_TRAN(&Traffic::EWSlow);
             }
             PRINT("NS Request and min duration not done\r\n");
@@ -257,9 +252,9 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
         }
         case MIN_TIMER: {
             EVENT(e);
-            minDurationDone = true;
+            me->m_ewMinDurationDone = true;
             PRINT("Minimum duration end for EW\r\n");
-            if (nsCarQueued){
+            if (me->m_nsCarQueued){
             	me->Raise(new Evt(TRAFFIC_CAR_NS_REQ));
             }
             return Q_HANDLED();

@@ -181,7 +181,7 @@ group=2</panel_attributes>
 entry/ Send(LAMP_YELLOW_REQ, LAMP_NS),
        start waitTimer(3s)
 exit/ stop waitTimer
-
+TRAFFIC_CAR_NS_REQ/ m_nsCarQueued = true
 valign=top
 </panel_attributes>
     <additional_attributes/>
@@ -199,6 +199,7 @@ valign=top
 entry/ Send(LAMP_YELLOW_REQ, LAMP_EW),
        start waitTimer(3s)
 exit/ stop waitTimer
+TRAFFIC_CAR_EW_REQ/ m_ewCarQueued = true
 
 valign=top
 </panel_attributes>

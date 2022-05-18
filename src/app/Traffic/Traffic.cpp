@@ -215,6 +215,11 @@ QState Traffic::NSSlow(Traffic *me, QEvt const *e) {
             me->m_waitTimer.Stop();
             return Q_HANDLED();
         }
+        case TRAFFIC_CAR_NS_REQ: {
+            EVENT(e);
+            me->m_nsCarQueued = true;
+            return Q_HANDLED();
+        }
         case WAIT_TIMER: {
             EVENT(e);
             return Q_TRAN(&Traffic::EWGo);
@@ -288,6 +293,11 @@ QState Traffic::EWSlow(Traffic *me, QEvt const *e) {
         case Q_EXIT_SIG: {
             EVENT(e);
             me->m_waitTimer.disarm();
+            return Q_HANDLED();
+        }
+        case TRAFFIC_CAR_EW_REQ: {
+            EVENT(e);
+            me->m_ewCarQueued = true;
             return Q_HANDLED();
         }
         case WAIT_TIMER: {

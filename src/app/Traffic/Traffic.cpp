@@ -69,7 +69,8 @@ static char const * const interfaceEvtName[] = {
 Traffic::Traffic() :
     Active((QStateHandler)&Traffic::InitialPseudoState, TRAFFIC, "TRAFFIC"),
     m_lampNS(LAMP_NS, "LAMP_NS"), m_lampEW(LAMP_EW, "LAMP_EW"),
-    m_waitTimer(GetHsmn(), WAIT_TIMER), m_minDurationTimer(GetHsmn(), MIN_TIMER) {
+    m_waitTimer(GetHsmn(), WAIT_TIMER), m_minDurationTimer(GetHsmn(), MIN_TIMER),
+	m_ewTrafficTimer(GetHsmn(), EW_TRAFFIC_TIMER){
     SET_EVT_NAME(TRAFFIC);
 }
 
@@ -230,13 +231,16 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
             me->Send(new LampRedReq(), LAMP_NS);
             me->Send(new LampGreenReq(), LAMP_EW);
             PRINT("Minimum duration start for EW\r\n");
+            PRINT("Traffic timer start for EW\r\n");
             me->m_ewMinDurationDone = false;
             me->m_minDurationTimer.Start(EW_MIN_DURATION_TIMEOUT_MS);
+            me->m_ewTrafficTimer.Start(EW_NO_TRAFFIC_TIMOUT_MS);
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
             EVENT(e);
             me->m_minDurationTimer.Stop();
+            me->m_ewTrafficTimer.Stop();
             return Q_HANDLED();
         }
         case TRAFFIC_CAR_NS_REQ: {
@@ -250,6 +254,11 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
             PRINT("NS Request and min duration not done\r\n");
             return Q_HANDLED();
         }
+        case TRAFFIC_CAR_EW_REQ: {
+            EVENT(e);
+            me->m_ewTrafficTimer.Restart(EW_NO_TRAFFIC_TIMOUT_MS);
+            return Q_HANDLED();
+        }
         case MIN_TIMER: {
             EVENT(e);
             me->m_ewMinDurationDone = true;
@@ -258,6 +267,11 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
             	me->Raise(new Evt(TRAFFIC_CAR_NS_REQ));
             }
             return Q_HANDLED();
+        }
+        case EW_TRAFFIC_TIMER: {
+            EVENT(e);
+            PRINT("Traffic timeout for EW traffic. Return to NSGo per usual route.\r\n");
+            return Q_TRAN(&Traffic::EWSlow);
         }
     }
     return Q_SUPER(&Traffic::Started);

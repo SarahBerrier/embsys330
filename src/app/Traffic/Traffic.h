@@ -71,11 +71,20 @@ protected:
     enum {
         NS_SLOW_TIMEOUT_MS     = 3000,
         EW_SLOW_TIMEOUT_MS     = 3000,
+        NS_MIN_DURATION_TIMEOUT_MS     = 20000,
+		EW_MIN_DURATION_TIMEOUT_MS     = 10000,
     };
     Timer m_waitTimer;       // Timer used to wait for the yellow light (slow-down) duration in either direction.
+    Timer m_minDurationTimer;// Timer used to wait for the minimum duration at a light in either direction.
+
+	bool m_ewMinDurationDone = false;
+	bool m_ewCarQueued = false;
+	bool m_nsMinDurationDone = false;
+	bool m_nsCarQueued = false;
 
 #define TRAFFIC_TIMER_EVT \
-    ADD_EVT(WAIT_TIMER)
+    ADD_EVT(WAIT_TIMER) \
+    ADD_EVT(MIN_TIMER)
 
 // Placeholder only.
 #define TRAFFIC_INTERNAL_EVT \

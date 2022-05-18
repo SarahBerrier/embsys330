@@ -69,13 +69,16 @@ protected:
     Lamp m_lampEW;          // Orthogonal region for the EW lamp.
 
     enum {
-        NS_SLOW_TIMEOUT_MS     = 3000,
-        EW_SLOW_TIMEOUT_MS     = 3000,
-        NS_MIN_DURATION_TIMEOUT_MS     = 20000,
-		EW_MIN_DURATION_TIMEOUT_MS     = 10000,
+        NS_SLOW_TIMEOUT_MS          = 3000,
+        EW_SLOW_TIMEOUT_MS          = 3000,
+        NS_MIN_DURATION_TIMEOUT_MS  = 20000,
+        EW_MIN_DURATION_TIMEOUT_MS  = 10000,
+        EW_NO_TRAFFIC_TIMOUT_MS     = 15000,
     };
+
     Timer m_waitTimer;       // Timer used to wait for the yellow light (slow-down) duration in either direction.
     Timer m_minDurationTimer;// Timer used to wait for the minimum duration at a light in either direction.
+    Timer m_ewTrafficTimer;  // Timer used to default back to north/south green if no traffic during timer in east/west green
 
 	bool m_ewMinDurationDone = false;
 	bool m_ewCarQueued = false;
@@ -84,7 +87,8 @@ protected:
 
 #define TRAFFIC_TIMER_EVT \
     ADD_EVT(WAIT_TIMER) \
-    ADD_EVT(MIN_TIMER)
+    ADD_EVT(MIN_TIMER) \
+    ADD_EVT(EW_TRAFFIC_TIMER)
 
 // Placeholder only.
 #define TRAFFIC_INTERNAL_EVT \

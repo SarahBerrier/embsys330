@@ -126,6 +126,9 @@ QState Traffic::Stopped(Traffic * const me, QEvt const * const e) {
             EVENT(e);
             Evt const &req = EVT_CAST(*e);
 
+            me->Send(new DispStartReq(), ILI9341);
+            me->Send(new DispDrawBeginReq(), ILI9341);
+
             me->SendCfm(new TrafficStartCfm(ERROR_SUCCESS), req);
             return Q_TRAN(&Traffic::Started);
         }
@@ -153,6 +156,8 @@ QState Traffic::Started(Traffic * const me, QEvt const * const e) {
             // @todo Need to wait for response.
             me->Send(new LampResetReq(), LAMP_NS);
             me->Send(new LampResetReq(), LAMP_EW);
+
+            me->Send(new DispStopReq(), ILI9341);
 
             me->SendCfm(new TrafficStopCfm(ERROR_SUCCESS), req);
             return Q_TRAN(&Traffic::Stopped);

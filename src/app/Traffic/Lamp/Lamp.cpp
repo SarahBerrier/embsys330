@@ -67,12 +67,49 @@ static char const * const interfaceEvtName[] = {
 
 // Helper functions.
 void Lamp::Draw(Hsmn hsmn, bool redOn, bool yellowOn, bool greenOn) {
-    // Assignment 5
-    // @todo Remove - Avoids warnings only.
-    (void)hsmn;
-    (void)redOn;
-    (void)yellowOn;
-    (void)greenOn;
+
+    Send(new DispDrawTextReq("N/S", 35, 75, COLOR24_GRAY, COLOR24_BLACK, 3), ILI9341);
+    Send(new DispDrawTextReq("E/W", 153, 75, COLOR24_GRAY, COLOR24_BLACK, 3), ILI9341);
+
+    if (hsmn == LAMP_NS){
+        if (redOn){
+            Send(new DispDrawRectReq(35, 105, 50, 50, COLOR24_RED), ILI9341);
+        }else{
+            Send(new DispDrawRectReq(35, 105, 50, 50, COLOR24_DARK_GRAY), ILI9341);
+        }
+
+        if (yellowOn){
+            Send(new DispDrawRectReq(35, 160, 50, 50, COLOR24_YELLOW), ILI9341);
+        } else{
+            Send(new DispDrawRectReq(35, 160, 50, 50, COLOR24_DARK_GRAY), ILI9341);
+        }
+
+        if (greenOn){
+            Send(new DispDrawRectReq(35, 215, 50, 50, COLOR24_GREEN), ILI9341);
+        } else{
+            Send(new DispDrawRectReq(35, 215, 50, 50, COLOR24_DARK_GRAY), ILI9341);
+
+        }
+
+    } else if (hsmn == LAMP_EW){
+        if (redOn){
+            Send(new DispDrawRectReq(155, 105, 50, 50, COLOR24_RED), ILI9341);
+        }else{
+            Send(new DispDrawRectReq(155, 105, 50, 50, COLOR24_DARK_GRAY), ILI9341);
+        }
+
+        if (yellowOn){
+            Send(new DispDrawRectReq(155, 160, 50, 50, COLOR24_YELLOW), ILI9341);
+        } else{
+            Send(new DispDrawRectReq(155, 160, 50, 50, COLOR24_DARK_GRAY), ILI9341);
+        }
+
+        if (greenOn){
+            Send(new DispDrawRectReq(155, 215, 50, 50, COLOR24_GREEN), ILI9341);
+        } else{
+            Send(new DispDrawRectReq(155, 215, 50, 50, COLOR24_DARK_GRAY), ILI9341);
+        }
+    }
 }
 
 Lamp::Lamp(Hsmn hsmn, char const *name) :
@@ -116,6 +153,7 @@ QState Lamp::Red(Lamp * const me, QEvt const * const e) {
         case Q_ENTRY_SIG: {
             EVENT(e);
             LOG("[*][ ][ ]");
+            me->Draw(me->GetHsmn(), true, false, false);
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
@@ -135,6 +173,7 @@ QState Lamp::Green(Lamp * const me, QEvt const * const e) {
         case Q_ENTRY_SIG: {
             EVENT(e);
             LOG("[ ][ ][*]");
+            me->Draw(me->GetHsmn(), false, false, true);
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
@@ -154,6 +193,7 @@ QState Lamp::Yellow(Lamp * const me, QEvt const * const e) {
         case Q_ENTRY_SIG: {
             EVENT(e);
             LOG("[ ][*][ ]");
+            me->Draw(me->GetHsmn(), false, true, false);
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {

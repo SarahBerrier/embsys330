@@ -71,45 +71,31 @@ void Lamp::Draw(Hsmn hsmn, bool redOn, bool yellowOn, bool greenOn) {
     Send(new DispDrawTextReq("N/S", 35, 75, COLOR24_GRAY, COLOR24_BLACK, 3), ILI9341);
     Send(new DispDrawTextReq("E/W", 153, 75, COLOR24_GRAY, COLOR24_BLACK, 3), ILI9341);
 
+    uint32_t xPos = 0;
+
     if (hsmn == LAMP_NS){
-        if (redOn){
-            Send(new DispDrawRectReq(35, 105, 50, 50, COLOR24_RED), ILI9341);
-        }else{
-            Send(new DispDrawRectReq(35, 105, 50, 50, COLOR24_DARK_GRAY), ILI9341);
-        }
-
-        if (yellowOn){
-            Send(new DispDrawRectReq(35, 160, 50, 50, COLOR24_YELLOW), ILI9341);
-        } else{
-            Send(new DispDrawRectReq(35, 160, 50, 50, COLOR24_DARK_GRAY), ILI9341);
-        }
-
-        if (greenOn){
-            Send(new DispDrawRectReq(35, 215, 50, 50, COLOR24_GREEN), ILI9341);
-        } else{
-            Send(new DispDrawRectReq(35, 215, 50, 50, COLOR24_DARK_GRAY), ILI9341);
-
-        }
-
+    	xPos = 35;
     } else if (hsmn == LAMP_EW){
-        if (redOn){
-            Send(new DispDrawRectReq(155, 105, 50, 50, COLOR24_RED), ILI9341);
-        }else{
-            Send(new DispDrawRectReq(155, 105, 50, 50, COLOR24_DARK_GRAY), ILI9341);
-        }
-
-        if (yellowOn){
-            Send(new DispDrawRectReq(155, 160, 50, 50, COLOR24_YELLOW), ILI9341);
-        } else{
-            Send(new DispDrawRectReq(155, 160, 50, 50, COLOR24_DARK_GRAY), ILI9341);
-        }
-
-        if (greenOn){
-            Send(new DispDrawRectReq(155, 215, 50, 50, COLOR24_GREEN), ILI9341);
-        } else{
-            Send(new DispDrawRectReq(155, 215, 50, 50, COLOR24_DARK_GRAY), ILI9341);
-        }
+    	xPos = 155;
     }
+
+    if (redOn){
+		Send(new DispDrawRectReq(xPos, 105, 50, 50, COLOR24_RED), ILI9341);
+	}else{
+		Send(new DispDrawRectReq(xPos, 105, 50, 50, COLOR24_DARK_GRAY), ILI9341);
+	}
+
+	if (yellowOn){
+		Send(new DispDrawRectReq(xPos, 160, 50, 50, COLOR24_YELLOW), ILI9341);
+	} else{
+		Send(new DispDrawRectReq(xPos, 160, 50, 50, COLOR24_DARK_GRAY), ILI9341);
+	}
+
+	if (greenOn){
+		Send(new DispDrawRectReq(xPos, 215, 50, 50, COLOR24_GREEN), ILI9341);
+	} else{
+		Send(new DispDrawRectReq(xPos, 215, 50, 50, COLOR24_DARK_GRAY), ILI9341);
+	}
 }
 
 Lamp::Lamp(Hsmn hsmn, char const *name) :

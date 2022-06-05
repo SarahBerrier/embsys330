@@ -245,8 +245,8 @@ QState LevelMeter::Started(LevelMeter * const me, QEvt const * const e) {
             EVENT(e);
             me->m_pitch = 0.0;
             me->m_roll = 0.0;
-            me->m_pitchThres = 45.0;
-            me->m_rollThres = 45.0;
+            me->m_pitchThres = 15.0;
+            me->m_rollThres = 15.0;
             me->m_humidity = 0.0;
             me->m_temperature = 0.0;
             me->m_reportTimer.Start(REPORT_TIMEOUT_MS, Timer::PERIODIC);
@@ -339,7 +339,6 @@ QState LevelMeter::Normal(LevelMeter * const me, QEvt const * const e) {
     return Q_SUPER(&LevelMeter::Started);
 }
 
-
 QState LevelMeter::Redrawing(LevelMeter * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
@@ -350,10 +349,22 @@ QState LevelMeter::Redrawing(LevelMeter * const me, QEvt const * const e) {
 
             Log::FloatToStr(val, sizeof(val), me->m_pitch,  6,  2);
             snprintf(buf, sizeof(buf), "P= %s", val);
-            me->Send(new DispDrawTextReq(buf, 10, 30, COLOR24_BLUE, COLOR24_GREEN, 4), ILI9341);
+
+            if(fabs(me->m_pitch) > me->m_pitchThres){
+                me->Send(new DispDrawTextReq(buf, 10, 30, COLOR24_BLUE, COLOR24_RED, 4), ILI9341);
+            } else{
+                me->Send(new DispDrawTextReq(buf, 10, 30, COLOR24_BLUE, COLOR24_GREEN, 4), ILI9341);
+            }
+
             Log::FloatToStr(val, sizeof(val), me->m_roll,  6,  2);
             snprintf(buf, sizeof(buf), "R= %s", val);
-            me->Send(new DispDrawTextReq(buf, 10, 90, COLOR24_BLUE, COLOR24_GREEN, 4), ILI9341);
+
+            if(fabs(me->m_roll) > me->m_rollThres){
+                me->Send(new DispDrawTextReq(buf, 10, 90, COLOR24_BLUE, COLOR24_RED, 4), ILI9341);
+            } else{
+                me->Send(new DispDrawTextReq(buf, 10, 90, COLOR24_BLUE, COLOR24_GREEN, 4), ILI9341);
+            }
+
 
             Log::FloatToStr(val, sizeof(val), me->m_pitchThres,  5,  2);
             snprintf(buf, sizeof(buf), "PT= %s", val);

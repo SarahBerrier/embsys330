@@ -158,8 +158,8 @@ int main(void)
     Log::Off(CMD_PARSER_UART1);
     Log::Off(CONSOLE_UART1);
     Log::Off(ILI9341);
-    Log::Off(SENSOR_ACCEL_GYRO);
-    Log::Off(SENSOR_HUMID_TEMP);
+    //Log::Off(SENSOR_ACCEL_GYRO);
+    //Log::Off(SENSOR_HUMID_TEMP);
     Log::Off(ACCEL_GYRO_INT);
     //Log::Off(LEVEL_METER);
     Log::Off(WIFI);

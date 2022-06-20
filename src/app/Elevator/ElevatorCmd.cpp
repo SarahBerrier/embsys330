@@ -40,10 +40,10 @@
 #include "fw_log.h"
 #include "fw_assert.h"
 #include "Console.h"
-#include "TrafficCmd.h"
-#include "TrafficInterface.h"
+#include "ElevatorCmd.h"
+#include "ElevatorInterface.h"
 
-FW_DEFINE_THIS_FILE("TrafficCmd.cpp")
+FW_DEFINE_THIS_FILE("ElevatorCmd.cpp")
 
 namespace APP {
 
@@ -51,7 +51,7 @@ static CmdStatus NorthSouth(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
             console.PutStr("Car arriving in NS direction\n\r");
-            console.Send(new TrafficCarNSReq(), TRAFFIC);
+            console.Send(new ElevatorCarNSReq(), ELEVATOR);
             break;
         }
     }
@@ -62,7 +62,7 @@ static CmdStatus EastWest(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
             console.PutStr("Car arriving in EW direction\n\r");
-            console.Send(new TrafficCarEWReq(), TRAFFIC);
+            console.Send(new ElevatorCarEWReq(), ELEVATOR);
             break;
         }
     }
@@ -73,7 +73,7 @@ static CmdStatus ErrorReq(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
             console.PutStr("Critical error occurred\n\r");
-            console.Send(new TrafficErrorReq(), TRAFFIC);
+            console.Send(new ElevatorErrorReq(), ELEVATOR);
             break;
         }
     }
@@ -94,7 +94,7 @@ static CmdStatus List(Console &console, Evt const *e) {
     return console.ListCmd(e, cmdHandler, ARRAY_COUNT(cmdHandler));
 }
 
-CmdStatus TrafficCmd(Console &console, Evt const *e) {
+CmdStatus ElevatorCmd(Console &console, Evt const *e) {
     return console.HandleCmd(e, cmdHandler, ARRAY_COUNT(cmdHandler));
 }
 

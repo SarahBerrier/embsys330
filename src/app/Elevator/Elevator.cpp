@@ -40,11 +40,11 @@
 #include "fw_log.h"
 #include "fw_assert.h"
 #include "DispInterface.h"
-#include "TrafficInterface.h"
+#include "ElevatorInterface.h"
 #include "LampInterface.h"
-#include "Traffic.h"
+#include "Elevator.h"
 
-FW_DEFINE_THIS_FILE("Traffic.cpp")
+FW_DEFINE_THIS_FILE("Elevator.cpp")
 
 namespace APP {
 
@@ -52,34 +52,34 @@ namespace APP {
 #define ADD_EVT(e_) #e_,
 
 static char const * const timerEvtName[] = {
-    "TRAFFIC_TIMER_EVT_START",
-    TRAFFIC_TIMER_EVT
+    "ELEVATOR_TIMER_EVT_START",
+    ELEVATOR_TIMER_EVT
 };
 
 static char const * const internalEvtName[] = {
-    "TRAFFIC_INTERNAL_EVT_START",
-    TRAFFIC_INTERNAL_EVT
+    "ELEVATOR_INTERNAL_EVT_START",
+    ELEVATOR_INTERNAL_EVT
 };
 
 static char const * const interfaceEvtName[] = {
-    "TRAFFIC_INTERFACE_EVT_START",
-    TRAFFIC_INTERFACE_EVT
+    "ELEVATOR_INTERFACE_EVT_START",
+    ELEVATOR_INTERFACE_EVT
 };
 
-Traffic::Traffic() :
-    Active((QStateHandler)&Traffic::InitialPseudoState, TRAFFIC, "TRAFFIC"),
+Elevator::Elevator() :
+    Active((QStateHandler)&Elevator::InitialPseudoState, ELEVATOR, "ELEVATOR"),
     m_lampNS(LAMP_NS, "LAMP_NS"), m_lampEW(LAMP_EW, "LAMP_EW"),
     m_carWaiting(false), m_waitTimer(GetHsmn(), WAIT_TIMER),
     m_idleTimer(GetHsmn(), IDLE_TIMER), m_blinkTimer(GetHsmn(), BLINK_TIMER){
-    SET_EVT_NAME(TRAFFIC);
+    SET_EVT_NAME(ELEVATOR);
 }
 
-QState Traffic::InitialPseudoState(Traffic * const me, QEvt const * const e) {
+QState Elevator::InitialPseudoState(Elevator * const me, QEvt const * const e) {
     (void)e;
-    return Q_TRAN(&Traffic::Root);
+    return Q_TRAN(&Elevator::Root);
 }
 
-QState Traffic::Root(Traffic * const me, QEvt const * const e) {
+QState Elevator::Root(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -94,19 +94,19 @@ QState Traffic::Root(Traffic * const me, QEvt const * const e) {
         }
         case Q_INIT_SIG: {
             EVENT(e);
-            return Q_TRAN(&Traffic::Stopped);
+            return Q_TRAN(&Elevator::Stopped);
         }
-        case TRAFFIC_START_REQ: {
+        case ELEVATOR_START_REQ: {
             EVENT(e);
             Evt const &req = EVT_CAST(*e);
-            me->SendCfm(new TrafficStartCfm(ERROR_STATE), req);
+            me->SendCfm(new ElevatorStartCfm(ERROR_STATE), req);
             return Q_HANDLED();
         }
     }
     return Q_SUPER(&QHsm::top);
 }
 
-QState Traffic::Stopped(Traffic * const me, QEvt const * const e) {
+QState Elevator::Stopped(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -116,13 +116,13 @@ QState Traffic::Stopped(Traffic * const me, QEvt const * const e) {
             EVENT(e);
             return Q_HANDLED();
         }
-        case TRAFFIC_STOP_REQ: {
+        case ELEVATOR_STOP_REQ: {
             EVENT(e);
             Evt const &req = EVT_CAST(*e);
-            me->SendCfm(new TrafficStopCfm(ERROR_SUCCESS), req);
+            me->SendCfm(new ElevatorStopCfm(ERROR_SUCCESS), req);
             return Q_HANDLED();
         }
-        case TRAFFIC_START_REQ: {
+        case ELEVATOR_START_REQ: {
             EVENT(e);
             Evt const &req = EVT_CAST(*e);
 
@@ -130,14 +130,14 @@ QState Traffic::Stopped(Traffic * const me, QEvt const * const e) {
             me->Send(new DispStartReq(), ILI9341);
             me->Send(new DispDrawBeginReq(), ILI9341);
 
-            me->SendCfm(new TrafficStartCfm(ERROR_SUCCESS), req);
-            return Q_TRAN(&Traffic::Started);
+            me->SendCfm(new ElevatorStartCfm(ERROR_SUCCESS), req);
+            return Q_TRAN(&Elevator::Started);
         }
     }
-    return Q_SUPER(&Traffic::Root);
+    return Q_SUPER(&Elevator::Root);
 }
 
-QState Traffic::Started(Traffic * const me, QEvt const * const e) {
+QState Elevator::Started(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -148,9 +148,9 @@ QState Traffic::Started(Traffic * const me, QEvt const * const e) {
             return Q_HANDLED();
         }
         case Q_INIT_SIG: {
-            return Q_TRAN(&Traffic::NSGo);
+            return Q_TRAN(&Elevator::NSGo);
         }
-        case TRAFFIC_STOP_REQ: {
+        case ELEVATOR_STOP_REQ: {
             EVENT(e);
             Evt const &req = EVT_CAST(*e);
 
@@ -160,18 +160,18 @@ QState Traffic::Started(Traffic * const me, QEvt const * const e) {
 
             // @todo Need to wait for response.
             me->Send(new DispStopReq(), ILI9341);
-            me->SendCfm(new TrafficStopCfm(ERROR_SUCCESS), req);
-            return Q_TRAN(&Traffic::Stopped);
+            me->SendCfm(new ElevatorStopCfm(ERROR_SUCCESS), req);
+            return Q_TRAN(&Elevator::Stopped);
         }
-        case TRAFFIC_ERROR_REQ: {
+        case ELEVATOR_ERROR_REQ: {
             EVENT(e);
-            return Q_TRAN(&Traffic::StopSign);
+            return Q_TRAN(&Elevator::StopSign);
         }
     }
-    return Q_SUPER(&Traffic::Root);
+    return Q_SUPER(&Elevator::Root);
 }
 
-QState Traffic::NSGo(Traffic *me, QEvt const *e) {
+QState Elevator::NSGo(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -184,17 +184,17 @@ QState Traffic::NSGo(Traffic *me, QEvt const *e) {
             return Q_HANDLED();
         }
         case Q_INIT_SIG: {
-            return Q_TRAN(&Traffic::NSMinTimeWait);
+            return Q_TRAN(&Elevator::NSMinTimeWait);
         }
-        case TRAFFIC_CAR_EW_REQ: {
+        case ELEVATOR_CAR_EW_REQ: {
             EVENT(e);
-            return Q_TRAN(&Traffic::NSSlow);
+            return Q_TRAN(&Elevator::NSSlow);
         }
     }
-    return Q_SUPER(&Traffic::Started);;
+    return Q_SUPER(&Elevator::Started);;
 }
 
-QState Traffic::NSMinTimeWait(Traffic *me, QEvt const *e) {
+QState Elevator::NSMinTimeWait(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -205,25 +205,25 @@ QState Traffic::NSMinTimeWait(Traffic *me, QEvt const *e) {
         case Q_EXIT_SIG: {
             EVENT(e);
             if (me->m_carWaiting) {
-                me->Send(new TrafficCarEWReq(), me->GetHsmn());
+                me->Send(new ElevatorCarEWReq(), me->GetHsmn());
             }
             me->m_waitTimer.Stop();
             return Q_HANDLED();
         }
-        case TRAFFIC_CAR_EW_REQ: {
+        case ELEVATOR_CAR_EW_REQ: {
             EVENT(e);
             me->m_carWaiting = true;
             return Q_HANDLED();
         }
         case WAIT_TIMER: {
             EVENT(e);
-            return Q_TRAN(&Traffic::NSMinTimeExceeded);
+            return Q_TRAN(&Elevator::NSMinTimeExceeded);
         }
     }
-    return Q_SUPER(&Traffic::NSGo);;
+    return Q_SUPER(&Elevator::NSGo);;
 }
 
-QState Traffic::NSMinTimeExceeded(Traffic *me, QEvt const *e) {
+QState Elevator::NSMinTimeExceeded(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -234,10 +234,10 @@ QState Traffic::NSMinTimeExceeded(Traffic *me, QEvt const *e) {
             return Q_HANDLED();
         }
     }
-    return Q_SUPER(&Traffic::NSGo);;
+    return Q_SUPER(&Elevator::NSGo);;
 }
 
-QState Traffic::NSSlow(Traffic *me, QEvt const *e) {
+QState Elevator::NSSlow(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -252,13 +252,13 @@ QState Traffic::NSSlow(Traffic *me, QEvt const *e) {
         }
         case WAIT_TIMER: {
             EVENT(e);
-            return Q_TRAN(&Traffic::EWGo);
+            return Q_TRAN(&Elevator::EWGo);
         }
     }
-    return Q_SUPER(&Traffic::Started);
+    return Q_SUPER(&Elevator::Started);
 }
 
-QState Traffic::EWGo(Traffic *me, QEvt const *e) {
+QState Elevator::EWGo(Elevator *me, QEvt const *e) {
     switch (e->sig)
     {
         case Q_ENTRY_SIG: {
@@ -274,23 +274,23 @@ QState Traffic::EWGo(Traffic *me, QEvt const *e) {
             return Q_HANDLED();
         }
         case Q_INIT_SIG: {
-            return Q_TRAN(&Traffic::EWMinTimeWait);
+            return Q_TRAN(&Elevator::EWMinTimeWait);
         }
-        case TRAFFIC_CAR_EW_REQ: {
+        case ELEVATOR_CAR_EW_REQ: {
             EVENT(e);
             me->m_idleTimer.Restart(EW_IDLE_TIMEOUT_MS);
             return Q_HANDLED();
         }
-        case TRAFFIC_CAR_NS_REQ:
+        case ELEVATOR_CAR_NS_REQ:
         case IDLE_TIMER: {
             EVENT(e);
-            return Q_TRAN(&Traffic::EWSlow);
+            return Q_TRAN(&Elevator::EWSlow);
         }
     }
-    return Q_SUPER(&Traffic::Started);
+    return Q_SUPER(&Elevator::Started);
 }
 
-QState Traffic::EWMinTimeWait(Traffic *me, QEvt const *e) {
+QState Elevator::EWMinTimeWait(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -301,25 +301,25 @@ QState Traffic::EWMinTimeWait(Traffic *me, QEvt const *e) {
         case Q_EXIT_SIG: {
             EVENT(e);
             if (me->m_carWaiting) {
-                me->Send(new TrafficCarNSReq(), me->GetHsmn());
+                me->Send(new ElevatorCarNSReq(), me->GetHsmn());
             }
             me->m_waitTimer.Stop();
             return Q_HANDLED();
         }
-        case TRAFFIC_CAR_NS_REQ: {
+        case ELEVATOR_CAR_NS_REQ: {
             EVENT(e);
             me->m_carWaiting = true;
             return Q_HANDLED();
         }
         case WAIT_TIMER: {
             EVENT(e);
-            return Q_TRAN(&Traffic::EWMinTimeExceeded);
+            return Q_TRAN(&Elevator::EWMinTimeExceeded);
         }
     }
-    return Q_SUPER(&Traffic::EWGo);
+    return Q_SUPER(&Elevator::EWGo);
 }
 
-QState Traffic::EWMinTimeExceeded(Traffic *me, QEvt const *e) {
+QState Elevator::EWMinTimeExceeded(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -330,10 +330,10 @@ QState Traffic::EWMinTimeExceeded(Traffic *me, QEvt const *e) {
             return Q_HANDLED();
         }
     }
-    return Q_SUPER(&Traffic::EWGo);
+    return Q_SUPER(&Elevator::EWGo);
 }
 
-QState Traffic::EWSlow(Traffic *me, QEvt const *e) {
+QState Elevator::EWSlow(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -348,13 +348,13 @@ QState Traffic::EWSlow(Traffic *me, QEvt const *e) {
         }
         case WAIT_TIMER: {
             EVENT(e);
-            return Q_TRAN(&Traffic::NSGo);
+            return Q_TRAN(&Elevator::NSGo);
         }
     }
-    return Q_SUPER(&Traffic::Started);
+    return Q_SUPER(&Elevator::Started);
 }
 
-QState Traffic::StopSign(Traffic * const me, QEvt const * const e) {
+QState Elevator::StopSign(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -368,13 +368,13 @@ QState Traffic::StopSign(Traffic * const me, QEvt const * const e) {
         }
         case Q_INIT_SIG: {
             EVENT(e);
-            return Q_TRAN(&Traffic::StopSignOn);
+            return Q_TRAN(&Elevator::StopSignOn);
         }
     }
-    return Q_SUPER(&Traffic::Started);
+    return Q_SUPER(&Elevator::Started);
 }
 
-QState Traffic::StopSignOn(Traffic * const me, QEvt const * const e) {
+QState Elevator::StopSignOn(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -388,13 +388,13 @@ QState Traffic::StopSignOn(Traffic * const me, QEvt const * const e) {
         }
         case BLINK_TIMER: {
             EVENT(e);
-            return Q_TRAN(&Traffic::StopSignOff);
+            return Q_TRAN(&Elevator::StopSignOff);
         }
     }
-    return Q_SUPER(&Traffic::StopSign);
+    return Q_SUPER(&Elevator::StopSign);
 }
 
-QState Traffic::StopSignOff(Traffic * const me, QEvt const * const e) {
+QState Elevator::StopSignOff(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -408,14 +408,14 @@ QState Traffic::StopSignOff(Traffic * const me, QEvt const * const e) {
         }
         case BLINK_TIMER: {
             EVENT(e);
-            return Q_TRAN(&Traffic::StopSignOn);
+            return Q_TRAN(&Elevator::StopSignOn);
         }
     }
-    return Q_SUPER(&Traffic::StopSign);;
+    return Q_SUPER(&Elevator::StopSign);;
 }
 
 /*
-QState Traffic::MyState(Traffic * const me, QEvt const * const e) {
+QState Elevator::MyState(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
@@ -426,10 +426,10 @@ QState Traffic::MyState(Traffic * const me, QEvt const * const e) {
             return Q_HANDLED();
         }
         case Q_INIT_SIG: {
-            return Q_TRAN(&Traffic::SubState);
+            return Q_TRAN(&Elevator::SubState);
         }
     }
-    return Q_SUPER(&Traffic::SuperState);
+    return Q_SUPER(&Elevator::SuperState);
 }
 */
 

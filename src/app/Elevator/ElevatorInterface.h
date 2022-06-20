@@ -36,8 +36,8 @@
  * Email - admin@galliumstudio.com
  ******************************************************************************/
 
-#ifndef TRAFFIC_INTERFACE_H
-#define TRAFFIC_INTERFACE_H
+#ifndef ELEVATOR_INTERFACE_H
+#define ELEVATOR_INTERFACE_H
 
 #include "fw_def.h"
 #include "fw_evt.h"
@@ -48,78 +48,78 @@ using namespace FW;
 
 namespace APP {
 
-#define TRAFFIC_INTERFACE_EVT \
-    ADD_EVT(TRAFFIC_START_REQ) \
-    ADD_EVT(TRAFFIC_START_CFM) \
-    ADD_EVT(TRAFFIC_STOP_REQ) \
-    ADD_EVT(TRAFFIC_STOP_CFM) \
-    ADD_EVT(TRAFFIC_ERROR_REQ) \
-    ADD_EVT(TRAFFIC_CAR_NS_REQ) \
-    ADD_EVT(TRAFFIC_CAR_EW_REQ)
+#define ELEVATOR_INTERFACE_EVT \
+    ADD_EVT(ELEVATOR_START_REQ) \
+    ADD_EVT(ELEVATOR_START_CFM) \
+    ADD_EVT(ELEVATOR_STOP_REQ) \
+    ADD_EVT(ELEVATOR_STOP_CFM) \
+    ADD_EVT(ELEVATOR_ERROR_REQ) \
+    ADD_EVT(ELEVATOR_CAR_NS_REQ) \
+    ADD_EVT(ELEVATOR_CAR_EW_REQ)
 
 #undef ADD_EVT
 #define ADD_EVT(e_) e_,
 
 enum {
-    TRAFFIC_INTERFACE_EVT_START = INTERFACE_EVT_START(TRAFFIC),
-    TRAFFIC_INTERFACE_EVT
+    ELEVATOR_INTERFACE_EVT_START = INTERFACE_EVT_START(ELEVATOR),
+    ELEVATOR_INTERFACE_EVT
 };
 
 enum {
-    TRAFFIC_REASON_UNSPEC = 0,
+    ELEVATOR_REASON_UNSPEC = 0,
 };
 
-class TrafficStartReq : public Evt {
+class ElevatorStartReq : public Evt {
 public:
     enum {
         TIMEOUT_MS = 100
     };
-    TrafficStartReq() :
-        Evt(TRAFFIC_START_REQ) {}
+    ElevatorStartReq() :
+        Evt(ELEVATOR_START_REQ) {}
 };
 
-class TrafficStartCfm : public ErrorEvt {
+class ElevatorStartCfm : public ErrorEvt {
 public:
-    TrafficStartCfm(Error error, Hsmn origin = HSM_UNDEF, Reason reason = 0) :
-        ErrorEvt(TRAFFIC_START_CFM, error, origin, reason) {}
+    ElevatorStartCfm(Error error, Hsmn origin = HSM_UNDEF, Reason reason = 0) :
+        ErrorEvt(ELEVATOR_START_CFM, error, origin, reason) {}
 };
 
-class TrafficStopReq : public Evt {
+class ElevatorStopReq : public Evt {
 public:
     enum {
         TIMEOUT_MS = 100
     };
-    TrafficStopReq() :
-        Evt(TRAFFIC_STOP_REQ) {}
+    ElevatorStopReq() :
+        Evt(ELEVATOR_STOP_REQ) {}
 };
 
-class TrafficStopCfm : public ErrorEvt {
+class ElevatorStopCfm : public ErrorEvt {
 public:
-    TrafficStopCfm(Error error, Hsmn origin = HSM_UNDEF, Reason reason = 0) :
-        ErrorEvt(TRAFFIC_STOP_CFM, error, origin, reason) {}
-};
-
-// There is no accompanying CFM.
-class TrafficErrorReq : public Evt {
-public:
-    TrafficErrorReq() :
-        Evt(TRAFFIC_ERROR_REQ) {}
+    ElevatorStopCfm(Error error, Hsmn origin = HSM_UNDEF, Reason reason = 0) :
+        ErrorEvt(ELEVATOR_STOP_CFM, error, origin, reason) {}
 };
 
 // There is no accompanying CFM.
-class TrafficCarNSReq : public Evt {
+class ElevatorErrorReq : public Evt {
 public:
-    TrafficCarNSReq() :
-        Evt(TRAFFIC_CAR_NS_REQ) {}
+    ElevatorErrorReq() :
+        Evt(ELEVATOR_ERROR_REQ) {}
 };
 
 // There is no accompanying CFM.
-class TrafficCarEWReq : public Evt {
+class ElevatorCarNSReq : public Evt {
 public:
-    TrafficCarEWReq() :
-        Evt(TRAFFIC_CAR_EW_REQ) {}
+    ElevatorCarNSReq() :
+        Evt(ELEVATOR_CAR_NS_REQ) {}
+};
+
+// There is no accompanying CFM.
+class ElevatorCarEWReq : public Evt {
+public:
+    ElevatorCarEWReq() :
+        Evt(ELEVATOR_CAR_EW_REQ) {}
 };
 
 } // namespace APP
 
-#endif // TRAFFIC_INTERFACE_H
+#endif // ELEVATOR_INTERFACE_H

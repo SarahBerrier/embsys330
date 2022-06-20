@@ -36,15 +36,15 @@
  * Email - admin@galliumstudio.com
  ******************************************************************************/
 
-#ifndef TRAFFIC_CMD_H
-#define TRAFFIC_CMD_H
+#ifndef ELEVATOR_CMD_H
+#define ELEVATOR_CMD_H
 
 #include "ConsoleInterface.h"
 
 namespace APP {
 
-CmdStatus TrafficCmd(Console &console, Evt const *e);
+CmdStatus ElevatorCmd(Console &console, Evt const *e);
 
 } // namespace APP
 
-#endif // TRAFFIC_CMD_H
+#endif // ELEVATOR_CMD_H

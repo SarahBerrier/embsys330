@@ -36,8 +36,8 @@
  * Email - admin@galliumstudio.com
  ******************************************************************************/
 
-#ifndef TRAFFIC_H
-#define TRAFFIC_H
+#ifndef ELEVATOR_H
+#define ELEVATOR_H
 
 #include "qpcpp.h"
 #include "fw_active.h"
@@ -51,26 +51,26 @@ using namespace FW;
 
 namespace APP {
 
-class Traffic : public Active {
+class Elevator : public Active {
 public:
-    Traffic();
+    Elevator();
 
 protected:
-    static QState InitialPseudoState(Traffic * const me, QEvt const * const e);
-    static QState Root(Traffic * const me, QEvt const * const e);
-        static QState Stopped(Traffic * const me, QEvt const * const e);
-        static QState Started(Traffic * const me, QEvt const * const e);
-           static QState NSGo(Traffic * const me, QEvt const * const e);
-               static QState NSMinTimeWait(Traffic * const me, QEvt const * const e);
-               static QState NSMinTimeExceeded(Traffic * const me, QEvt const * const e);
-           static QState NSSlow(Traffic * const me, QEvt const * const e);
-           static QState EWGo(Traffic * const me, QEvt const * const e);
-               static QState EWMinTimeWait(Traffic * const me, QEvt const * const e);
-               static QState EWMinTimeExceeded(Traffic * const me, QEvt const * const e);
-           static QState EWSlow(Traffic * const me, QEvt const * const e);
-           static QState StopSign(Traffic * const me, QEvt const * const e);
-               static QState StopSignOn(Traffic * const me, QEvt const * const e);
-               static QState StopSignOff(Traffic * const me, QEvt const * const e);
+    static QState InitialPseudoState(Elevator * const me, QEvt const * const e);
+    static QState Root(Elevator * const me, QEvt const * const e);
+        static QState Stopped(Elevator * const me, QEvt const * const e);
+        static QState Started(Elevator * const me, QEvt const * const e);
+           static QState NSGo(Elevator * const me, QEvt const * const e);
+               static QState NSMinTimeWait(Elevator * const me, QEvt const * const e);
+               static QState NSMinTimeExceeded(Elevator * const me, QEvt const * const e);
+           static QState NSSlow(Elevator * const me, QEvt const * const e);
+           static QState EWGo(Elevator * const me, QEvt const * const e);
+               static QState EWMinTimeWait(Elevator * const me, QEvt const * const e);
+               static QState EWMinTimeExceeded(Elevator * const me, QEvt const * const e);
+           static QState EWSlow(Elevator * const me, QEvt const * const e);
+           static QState StopSign(Elevator * const me, QEvt const * const e);
+               static QState StopSignOn(Elevator * const me, QEvt const * const e);
+               static QState StopSignOff(Elevator * const me, QEvt const * const e);
 
     Lamp m_lampNS;          // Orthogonal region for the NS lamp.
     Lamp m_lampEW;          // Orthogonal region for the EW lamp.
@@ -88,13 +88,13 @@ protected:
     Timer m_idleTimer;       // Timer used to detect idle condition in EW direction.
     Timer m_blinkTimer;      // Timer used to blink a stop sign.
 
-#define TRAFFIC_TIMER_EVT \
+#define ELEVATOR_TIMER_EVT \
     ADD_EVT(WAIT_TIMER) \
     ADD_EVT(IDLE_TIMER) \
     ADD_EVT(BLINK_TIMER)
 
 // Placeholder only.
-#define TRAFFIC_INTERNAL_EVT \
+#define ELEVATOR_INTERNAL_EVT \
     ADD_EVT(DONE) \
     ADD_EVT(FAILED)
 
@@ -102,13 +102,13 @@ protected:
 #define ADD_EVT(e_) e_,
 
     enum {
-        TRAFFIC_TIMER_EVT_START = TIMER_EVT_START(TRAFFIC),
-        TRAFFIC_TIMER_EVT
+        ELEVATOR_TIMER_EVT_START = TIMER_EVT_START(ELEVATOR),
+        ELEVATOR_TIMER_EVT
     };
 
     enum {
-        TRAFFIC_INTERNAL_EVT_START = INTERNAL_EVT_START(TRAFFIC),
-        TRAFFIC_INTERNAL_EVT
+        ELEVATOR_INTERNAL_EVT_START = INTERNAL_EVT_START(ELEVATOR),
+        ELEVATOR_INTERNAL_EVT
     };
 
     // Placeholder only.
@@ -121,4 +121,4 @@ protected:
 
 } // namespace APP
 
-#endif // TRAFFIC_H
+#endif // ELEVATOR_H

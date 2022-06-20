@@ -33,10 +33,10 @@ fontfamily=Monospaced //possible: SansSerif,Serif,Monospaced
       <w>1494</w>
       <h>2223</h>
     </coordinates>
-    <panel_attributes>Traffic::Root
+    <panel_attributes>Elevator::Root
 --
 entry/ initialize LAMP_NS and LAMP_EW regions
-TRAFFIC_START_REQ/ SendCfmn(TRAFFIC_START_CFM(STATE))
+ELEVATOR_START_REQ/ SendCfmn(ELEVATOR_START_CFM(STATE))
 valign=top
 </panel_attributes>
     <additional_attributes/>
@@ -66,8 +66,8 @@ valign=top
     </coordinates>
     <panel_attributes>Stopped
 --
-TRAFFIC_STOP_REQ
-/ SendCfm(TRAFFIC_STOP_CFM(SUCCESS))
+ELEVATOR_STOP_REQ
+/ SendCfm(ELEVATOR_STOP_CFM(SUCCESS))
 
 valign=top
 </panel_attributes>
@@ -103,10 +103,10 @@ valign=top
       <w>270</w>
       <h>54</h>
     </coordinates>
-    <panel_attributes>TRAFFIC_START_REQ
+    <panel_attributes>ELEVATOR_START_REQ
 / Send(DISP_START_REQ),
   Send(DISP_DRAW_BEGIN_REQ),
-  SendCfm(TRAFFIC_START_CFM(SUCCESS))
+  SendCfm(ELEVATOR_START_CFM(SUCCESS))
 style=wordwrap</panel_attributes>
     <additional_attributes/>
   </element>
@@ -118,11 +118,11 @@ style=wordwrap</panel_attributes>
       <w>252</w>
       <h>63</h>
     </coordinates>
-    <panel_attributes>TRAFFIC_STOP_REQ
+    <panel_attributes>ELEVATOR_STOP_REQ
 / Send(LAMP_RESET_REQ, LAMP_NS),
   Send(LAMP_RESET_REQ, LAMP_EW),
   Send(DISP_STOP_REQ),
-  SendCfm(TRAFFIC_STOP_CFM(SUCCESS))
+  SendCfm(ELEVATOR_STOP_CFM(SUCCESS))
 style=wordwrap</panel_attributes>
     <additional_attributes/>
   </element>
@@ -155,9 +155,9 @@ valign=top
 --
 entry/ carWaiting = false, 
        start waitTimer(20s)
-exit/ if (carWaiting) Send(TRAFFIC_CAR_EW_REQ), 
+exit/ if (carWaiting) Send(ELEVATOR_CAR_EW_REQ), 
       stop waitTimer
-TRAFFIC_CAR_EW_REQ/ carWaiting = true
+ELEVATOR_CAR_EW_REQ/ carWaiting = true
 
 valign=top
 </panel_attributes>
@@ -303,7 +303,7 @@ valign=top
       <w>126</w>
       <h>27</h>
     </coordinates>
-    <panel_attributes>TRAFFIC_CAR_EW_REQ
+    <panel_attributes>ELEVATOR_CAR_EW_REQ
 style=wordwrap</panel_attributes>
     <additional_attributes/>
   </element>
@@ -321,7 +321,7 @@ entry/ Send(LAMP_RED_REQ, LAMP_NS), Send(LAMP_GREEN_REQ, LAMP_EW),
        start idleTimer(15s),
        start sensing car on NS and EW directions
 exit/ stop idleTimer
-TRAFFIC_CAR_EW_REQ/ restart idleTimer
+ELEVATOR_CAR_EW_REQ/ restart idleTimer
 
 valign=top
 </panel_attributes>
@@ -339,9 +339,9 @@ valign=top
 --
 entry/ carWaiting = false, 
        start waitTimer(10s)
-exit/ if (carWaiting) Send(TRAFFIC_CAR_NS_REQ), 
+exit/ if (carWaiting) Send(ELEVATOR_CAR_NS_REQ), 
       stop waitTimer
-TRAFFIC_CAR_NS_REQ/ carWaiting = true
+ELEVATOR_CAR_NS_REQ/ carWaiting = true
 
 valign=top
 </panel_attributes>
@@ -497,7 +497,7 @@ style=wordwrap</panel_attributes>
       <w>135</w>
       <h>27</h>
     </coordinates>
-    <panel_attributes>TRAFFIC_CAR_NS_REQ,
+    <panel_attributes>ELEVATOR_CAR_NS_REQ,
 IDLE_TIMER
 style=wordwrap</panel_attributes>
     <additional_attributes/>
@@ -820,7 +820,7 @@ style=wordwrap</panel_attributes>
       <w>126</w>
       <h>27</h>
     </coordinates>
-    <panel_attributes>TRAFFIC_ERROR_REQ
+    <panel_attributes>ELEVATOR_ERROR_REQ
 style=wordwrap</panel_attributes>
     <additional_attributes/>
   </element>

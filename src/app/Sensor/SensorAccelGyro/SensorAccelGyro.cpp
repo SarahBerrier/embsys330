@@ -257,6 +257,8 @@ QState SensorAccelGyro::Started(SensorAccelGyro * const me, QEvt const * const e
             EVENT(e);
             ACCELERO_StatusTypeDef status = BSP_ACCELERO_Init();
             FW_ASSERT(status == ACCELERO_OK);
+            GYRO_StatusTypeDef statusG = BSP_GYRO_Init();
+            FW_ASSERT(statusG == GYRO_OK);
             // @todo This seems unnecessary and should be removed. It is sent upon entry to On state.
             me->Send(new GpioInActiveInd(), me->GetHsmn());
             return Q_HANDLED();
@@ -264,6 +266,7 @@ QState SensorAccelGyro::Started(SensorAccelGyro * const me, QEvt const * const e
         case Q_EXIT_SIG: {
             EVENT(e);
             BSP_ACCELERO_DeInit();
+            BSP_GYRO_DeInit();
             return Q_HANDLED();
         }
         case Q_INIT_SIG: {
@@ -337,10 +340,13 @@ QState SensorAccelGyro::On(SensorAccelGyro * const me, QEvt const * const e) {
             FW_ASSERT(me->m_pipe);
             int16_t data[3];
             BSP_ACCELERO_AccGetXYZ(data);
+            float gyroData[3];
+            BSP_GYRO_GetXYZ(gyroData);
             LOG("Accel data = %d %d %d", data[0], data[1], data[2]);
+            LOG("Gyro data = %f %f %f", gyroData[0], gyroData[1], gyroData[2]);
             // @TODO - Perform any unit conversion. Currently just return raw values.
             //         Gyro data are not filled in, left as default 0.
-            AccelGyroReport report(data[0], data[1], data[2]);
+            AccelGyroReport report(data[0], data[1], data[2], gyroData[0], gyroData[1], gyroData[2]);
             uint32_t count = me->m_pipe->Write(&report, 1);
             if (count != 1) {
                 WARNING("Pipe full");

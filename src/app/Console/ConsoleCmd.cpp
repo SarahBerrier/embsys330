@@ -52,6 +52,7 @@
 #include "GpioOutCmd.h"
 #include "AOWashingMachineCmd.h"
 #include "TrafficCmd.h"
+#include "ElevatorCmd.h"
 #include "SimpleActCmd.h"
 #include "CompositeActCmd.h"
 #include "TestCode.h"
@@ -329,6 +330,7 @@ static CmdHandler const cmdHandler[] = {
     { "gpio",       GpioOutCmd, "GPIO output control", 0 },
     { "wash",       AOWashingMachineCmd, "Washing machine", 0 },
     { "traffic",    TrafficCmd, "Traffic light", 0 },
+    { "elevator",   ElevatorCmd, "Elevator", 0 },
     { "perf",       Perf,       "Performance demo", 0 },
     { "cpp",        Cpp,        "C++ testing", 0 },
     { "simp",       SimpleActCmd,    "Template/SimpleAct testing", 0 },

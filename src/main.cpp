@@ -94,6 +94,7 @@
 #include "GpioOutAct.h"
 #include "AOWashingMachine.h"
 #include "Traffic.h"
+#include "Elevator.h"
 #include "LevelMeter.h"
 #include "UartAct.h"
 #include "SystemInterface.h"
@@ -124,6 +125,7 @@ static Demo demo;
 static GpioOutAct gpioOutAct;
 static AOWashingMachine washingMachine;
 static Traffic traffic;
+static Elevator elevator;
 static LevelMeter levelMeter;
 static GpioInAct gpioInAct;
 static UartAct uartAct1(UART1_ACT, "UART1_ACT", "UART1_IN", "UART1_OUT");
@@ -158,8 +160,8 @@ int main(void)
     Log::Off(CMD_PARSER_UART1);
     Log::Off(CONSOLE_UART1);
     Log::Off(ILI9341);
-    //Log::Off(SENSOR_ACCEL_GYRO);
-    //Log::Off(SENSOR_HUMID_TEMP);
+    Log::Off(SENSOR_ACCEL_GYRO);
+    Log::Off(SENSOR_HUMID_TEMP);
     Log::Off(ACCEL_GYRO_INT);
     //Log::Off(LEVEL_METER);
     Log::Off(WIFI);
@@ -171,6 +173,7 @@ int main(void)
     demo.Start(PRIO_DEMO);
     gpioOutAct.Start(PRIO_GPIO_OUT_ACT);
     washingMachine.Start(PRIO_AO_WASHING_MACHINE);
+    elevator.Start(PRIO_ELEVATOR);
     traffic.Start(PRIO_TRAFFIC);
     levelMeter.Start(PRIO_LEVEL_METER);
     gpioInAct.Start(PRIO_GPIO_IN_ACT);

@@ -49,6 +49,7 @@
 #include "GpioOutInterface.h"
 #include "AOWashingMachineInterface.h"
 #include "TrafficInterface.h"
+#include "ElevatorInterface.h"
 #include "LevelMeterInterface.h"
 #include "NodeInterface.h"
 #include "SensorInterface.h"
@@ -60,7 +61,7 @@
 //#define ENABLE_NODE
 // Only one of the following can be enabled at a time.
 //#define ENABLE_TRAFFIC
-#define ENABLE_LEVEL_METER
+//#define ENABLE_LEVEL_METER
 
 #if (defined(ENABLE_TRAFFIC) && defined(ENABLE_LEVEL_METER))
 #error ENABLE_TRAFFIC and ENABLE_LEVEL_METER cannot be both defined
@@ -234,6 +235,7 @@ QState System::Starting1(System * const me, QEvt const * const e) {
             me->SendReq(new SimpleActStartReq(), SIMPLE_ACT, false);
             me->SendReq(new DemoStartReq(), DEMO, false);
             me->SendReq(new WashStartReq(), AO_WASHING_MACHINE, false);
+            me->SendReq(new ElevatorStartReq(), ELEVATOR, false);
 #ifdef ENABLE_TRAFFIC
             me->SendReq(new TrafficStartReq(), TRAFFIC, false);
 #endif
@@ -252,6 +254,7 @@ QState System::Starting1(System * const me, QEvt const * const e) {
         case SIMPLE_ACT_START_CFM:
         case DEMO_START_CFM:
         case WASH_START_CFM:
+        case ELEVATOR_START_CFM:
         case TRAFFIC_START_CFM:
         case GPIO_IN_START_CFM:
         case GPIO_OUT_START_CFM:
@@ -412,6 +415,7 @@ QState System::Stopping2(System * const me, QEvt const * const e) {
             me->SendReq(new SimpleActStopReq(), SIMPLE_ACT, false);
             me->SendReq(new DemoStopReq(), DEMO, false);
             me->SendReq(new WashStopReq(), AO_WASHING_MACHINE, false);
+            me->SendReq(new ElevatorStopReq(), ELEVATOR, false);
             me->SendReq(new TrafficStopReq(), TRAFFIC, false);
             me->SendReq(new GpioInStopReq(), USER_BTN, false);
             me->SendReq(new GpioOutStopReq(), USER_LED, false);
@@ -427,6 +431,7 @@ QState System::Stopping2(System * const me, QEvt const * const e) {
         case SIMPLE_ACT_STOP_CFM:
         case DEMO_STOP_CFM:
         case WASH_STOP_CFM:
+        case ELEVATOR_STOP_CFM:
         case TRAFFIC_STOP_CFM:
         case GPIO_IN_STOP_CFM:
         case GPIO_OUT_STOP_CFM:

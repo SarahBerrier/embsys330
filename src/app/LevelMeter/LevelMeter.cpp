@@ -1,3 +1,4 @@
+/*******************************************************************************
  * Copyright (C) Gallium Studio LLC. All rights reserved.
  *
  * This program is open source software: you can redistribute it and/or
@@ -146,7 +147,6 @@ QState LevelMeter::Starting(LevelMeter * const me, QEvt const * const e) {
             uint32_t timeout = LevelMeterStartReq::TIMEOUT_MS;
             FW_ASSERT(timeout > DispStartReq::TIMEOUT_MS);
             FW_ASSERT(timeout > SensorAccelGyroOnReq::TIMEOUT_MS);
-            //FW_ASSERT(timeout > SensorHumidTempOnReq::TIMEOUT_MS); // do I need this?
             me->m_stateTimer.Start(timeout);
             me->SendReq(new DispStartReq(), ILI9341, true);
             me->SendReq(new SensorAccelGyroOnReq(&me->m_accelGyroPipe), SENSOR_ACCEL_GYRO, false);
@@ -159,8 +159,8 @@ QState LevelMeter::Starting(LevelMeter * const me, QEvt const * const e) {
             return Q_HANDLED();
         }
         case DISP_START_CFM:
-        case SENSOR_HUMID_TEMP_ON_CFM:
-        case SENSOR_ACCEL_GYRO_ON_CFM: {
+        case SENSOR_ACCEL_GYRO_ON_CFM:
+        case SENSOR_HUMID_TEMP_ON_CFM: {
             EVENT(e);
             ErrorEvt const &cfm = ERROR_EVT_CAST(*e);
             bool allReceived;
@@ -198,7 +198,6 @@ QState LevelMeter::Stopping(LevelMeter * const me, QEvt const * const e) {
             uint32_t timeout = LevelMeterStopReq::TIMEOUT_MS;
             FW_ASSERT(timeout > DispStopReq::TIMEOUT_MS);
             FW_ASSERT(timeout > SensorAccelGyroOffReq::TIMEOUT_MS);
-            //FW_ASSERT(timeout > SensorHumidTempOffReq::TIMEOUT_MS);   // do I need this?
             me->m_stateTimer.Start(timeout);
             me->SendReq(new DispStopReq(), ILI9341, true);
             me->SendReq(new SensorAccelGyroOffReq(), SENSOR_ACCEL_GYRO, false);
@@ -217,8 +216,8 @@ QState LevelMeter::Stopping(LevelMeter * const me, QEvt const * const e) {
             return Q_HANDLED();
         }
         case DISP_STOP_CFM:
-        case SENSOR_HUMID_TEMP_OFF_CFM:
-        case SENSOR_ACCEL_GYRO_OFF_CFM: {
+        case SENSOR_ACCEL_GYRO_OFF_CFM:
+        case SENSOR_HUMID_TEMP_OFF_CFM: {
             EVENT(e);
             ErrorEvt const &cfm = ERROR_EVT_CAST(*e);
             bool allReceived;
@@ -250,8 +249,8 @@ QState LevelMeter::Started(LevelMeter * const me, QEvt const * const e) {
             EVENT(e);
             me->m_pitch = 0.0;
             me->m_roll = 0.0;
-            me->m_pitchThres = 15.0;
-            me->m_rollThres = 15.0;
+            me->m_pitchThres = 45.0;
+            me->m_rollThres = 45.0;
             me->m_humidity = 0.0;
             me->m_temperature = 0.0;
             me->m_reportTimer.Start(REPORT_TIMEOUT_MS, Timer::PERIODIC);
@@ -269,14 +268,14 @@ QState LevelMeter::Started(LevelMeter * const me, QEvt const * const e) {
             EVENT(e);
             // Reads acceleration and gyroscope data.
             // Default to zero.
-            AccelGyroReport accelGyroReport;
-            me->m_avgReport = accelGyroReport;
+            AccelGyroReport report;
+            me->m_avgReport = report;
             int32_t count = 0;
             while (me->m_accelGyroPipe.GetUsedCount()) {
-                me->m_accelGyroPipe.Read(&accelGyroReport, 1);
-                me->m_avgReport.m_aX += accelGyroReport.m_aX;
-                me->m_avgReport.m_aY += accelGyroReport.m_aY;
-                me->m_avgReport.m_aZ += accelGyroReport.m_aZ;
+                me->m_accelGyroPipe.Read(&report, 1);
+                me->m_avgReport.m_aX += report.m_aX;
+                me->m_avgReport.m_aY += report.m_aY;
+                me->m_avgReport.m_aZ += report.m_aZ;
                 count++;
             }
             if (count) {
@@ -290,6 +289,8 @@ QState LevelMeter::Started(LevelMeter * const me, QEvt const * const e) {
             float x = me->m_avgReport.m_aX;
             float y = me->m_avgReport.m_aY;
             float z = me->m_avgReport.m_aZ;
+            me->m_accelX = me->m_avgReport.m_aX;
+            me->m_accelY = me->m_avgReport.m_aY;
             me->m_pitch = atan(x/sqrt((y*y) + (z*z))) * 180/PI;
             me->m_roll  = atan(y/sqrt((x*x) + (z*z))) * 180/PI;
             // Alternative methods.
@@ -309,28 +310,17 @@ QState LevelMeter::Started(LevelMeter * const me, QEvt const * const e) {
             // This is kept as comment for reference.
             //LOG("pitch=%6.2f, roll=%6.2f", me->m_pitch, me->m_roll);
 
-            // above is acceleration and gyroscope data
-            // below is humidity and temperature data
-            HumidTempReport humidTempReport;
-            float humidityAvg = 0;
-            float temperatureAvg = 0;
-            count = 0;
+            // Reads humidity and temperature data.
+            // Since they are slow changing, it's sufficient to save the last values.
             while (me->m_humidTempPipe.GetUsedCount()) {
-                me->m_humidTempPipe.Read(&humidTempReport, 1);
-                humidityAvg += humidTempReport.m_humidity;
-                temperatureAvg += humidTempReport.m_temperature;
-                count++;
+                HumidTempReport report;
+                me->m_humidTempPipe.Read(&report, 1);
+                me->m_humidity = report.m_humidity;
+                me->m_temperature = report.m_temperature;
             }
-            if (count) {
-            	humidityAvg /= count;
-            	temperatureAvg /= count;
-            }
-
-            temperatureAvg = ((temperatureAvg * 1.8000) + 32.00);
-            me->m_temperature = temperatureAvg;
-            me->m_humidity = humidityAvg;
-
-            LOG("(count=%d) humidity = %f, temperature = %f", count, humidityAvg, temperatureAvg);
+            Log::FloatToStr(val1, sizeof(val1), me->m_humidity,  5,  2);
+            Log::FloatToStr(val2, sizeof(val2), me->m_temperature,  5,  2);
+            LOG("humid=%s, temp=%s", val1, val2);
 
             me->Raise(new Evt(REDRAW));
             // @todo Currently when the destination (to) of a msg is undefined, the server sends to all nodes.
@@ -367,6 +357,7 @@ QState LevelMeter::Normal(LevelMeter * const me, QEvt const * const e) {
     return Q_SUPER(&LevelMeter::Started);
 }
 
+
 QState LevelMeter::Redrawing(LevelMeter * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
@@ -375,39 +366,34 @@ QState LevelMeter::Redrawing(LevelMeter * const me, QEvt const * const e) {
             char val[10];
             char buf[30];
 
-            Log::FloatToStr(val, sizeof(val), me->m_pitch,  6,  2);
-            snprintf(buf, sizeof(buf), "P= %s", val);
+//            Log::FloatToStr(val, sizeof(val), me->m_pitch,  6,  2);
+//            snprintf(buf, sizeof(buf), "P= %s", val);
+//            me->Send(new DispDrawTextReq(buf, 10, 30, COLOR24_BLUE, COLOR24_GREEN, 4), ILI9341);
+//            Log::FloatToStr(val, sizeof(val), me->m_roll,  6,  2);
+//            snprintf(buf, sizeof(buf), "R= %s", val);
+//            me->Send(new DispDrawTextReq(buf, 10, 90, COLOR24_BLUE, COLOR24_GREEN, 4), ILI9341);
+//
+//            Log::FloatToStr(val, sizeof(val), me->m_pitchThres,  5,  2);
+//            snprintf(buf, sizeof(buf), "PT= %s", val);
+//            me->Send(new DispDrawTextReq(buf, 10, 150, COLOR24_BLACK, COLOR24_WHITE, 4), ILI9341);
+//            Log::FloatToStr(val, sizeof(val), me->m_rollThres,  5,  2);
+//            snprintf(buf, sizeof(buf), "RT= %s", val);
+//            me->Send(new DispDrawTextReq(buf, 10, 210, COLOR24_BLACK, COLOR24_WHITE, 4), ILI9341);
+//
+//            Log::FloatToStr(val, sizeof(val), me->m_humidity,  5,  2);
+//            snprintf(buf, sizeof(buf), "H= %s", val);
+//            me->Send(new DispDrawTextReq(buf, 10, 280, COLOR24_DARK_GRAY, COLOR24_WHITE, 2), ILI9341);
+//            Log::FloatToStr(val,  sizeof(val), me->m_temperature,  5,  2);
+//            snprintf(buf, sizeof(buf), "T= %s", val);
+//            me->Send(new DispDrawTextReq(buf, 120, 280, COLOR24_DARK_GRAY, COLOR24_WHITE, 2), ILI9341);
 
-            if(fabs(me->m_pitch) > me->m_pitchThres){
-                me->Send(new DispDrawTextReq(buf, 10, 20, COLOR24_BLUE, COLOR24_RED, 4), ILI9341);
-            } else{
-                me->Send(new DispDrawTextReq(buf, 10, 20, COLOR24_BLUE, COLOR24_GREEN, 4), ILI9341);
-            }
+            Log::FloatToStr(val, sizeof(val), me->m_accelX,  6,  2);
+            snprintf(buf, sizeof(buf), "X= %s", val);
+            me->Send(new DispDrawTextReq(buf, 10, 30, COLOR24_BLUE, COLOR24_GREEN, 3), ILI9341);
 
-            Log::FloatToStr(val, sizeof(val), me->m_roll,  6,  2);
-            snprintf(buf, sizeof(buf), "R= %s", val);
-
-            if(fabs(me->m_roll) > me->m_rollThres){
-                me->Send(new DispDrawTextReq(buf, 10, 60, COLOR24_BLUE, COLOR24_RED, 4), ILI9341);
-            } else{
-                me->Send(new DispDrawTextReq(buf, 10, 60, COLOR24_BLUE, COLOR24_GREEN, 4), ILI9341);
-            }
-
-            Log::FloatToStr(val, sizeof(val), me->m_pitchThres,  5,  2);
-            snprintf(buf, sizeof(buf), "PT= %s", val);
-            me->Send(new DispDrawTextReq(buf, 10, 100, COLOR24_BLACK, COLOR24_WHITE, 4), ILI9341);
-            Log::FloatToStr(val, sizeof(val), me->m_rollThres,  5,  2);
-            snprintf(buf, sizeof(buf), "RT= %s", val);
-            me->Send(new DispDrawTextReq(buf, 10, 140, COLOR24_BLACK, COLOR24_WHITE, 4), ILI9341);
-
-            Log::FloatToStr(val, sizeof(val), me->m_humidity,  6,  2);
-            snprintf(buf, sizeof(buf), "H= %s", val);
-            me->Send(new DispDrawTextReq(buf, 10, 190, COLOR24_PINK, COLOR24_WHITE, 4), ILI9341);
-
-            Log::FloatToStr(val, sizeof(val), me->m_temperature,  6,  2);
-            snprintf(buf, sizeof(buf), "T= %s", val);
-            me->Send(new DispDrawTextReq(buf, 10, 230, COLOR24_PURPLE, COLOR24_WHITE, 4), ILI9341);
-
+            Log::FloatToStr(val, sizeof(val), me->m_accelY,  6,  2);
+            snprintf(buf, sizeof(buf), "Y= %s", val);
+            me->Send(new DispDrawTextReq(buf, 10, 90, COLOR24_BLUE, COLOR24_GREEN, 3), ILI9341);
 
             me->Send(new DispDrawEndReq(), ILI9341);
             return Q_HANDLED();

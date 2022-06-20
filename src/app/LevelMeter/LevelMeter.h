@@ -76,6 +76,8 @@ protected:
     AccelGyroPipe m_accelGyroPipe;
     HumidTempPipe m_humidTempPipe;
     AccelGyroReport m_avgReport;
+    float m_accelX;             // X value of accelerometer.
+    float m_accelY;             // Y value of accelerometer.
     float m_pitch;              // Average pitch in degree.
     float m_roll;               // Average roll in degree.
     float m_pitchThres;         // Pitch alarm threshold in degree (applies to negative threshold).

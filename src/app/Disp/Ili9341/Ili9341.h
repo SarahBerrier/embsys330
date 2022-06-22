@@ -90,8 +90,9 @@ protected:
     void SetRotation(uint8_t rotation) override;
     void WritePixel(int16_t x, int16_t y, uint16_t color) override;
     void FillRect(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t color) override;
-    void WriteBitmap(int16_t x, int16_t y, uint16_t w, uint16_t h, uint8_t *buf, uint32_t len) override;
-
+    void FillCircle(int16_t x, int16_t y, int16_t r, uint16_t color) override;
+    void FillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int16_t delta, uint16_t color) override;
+    void WriteBitmap(int16_t x0, int16_t y0, uint16_t w, uint16_t h, uint8_t *buf, uint32_t len) override;
 
     Hsmn m_client;
     Timer m_stateTimer;

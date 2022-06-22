@@ -372,6 +372,7 @@ void Ili9341::WritePixel(int16_t x, int16_t y, uint16_t color) {
     PushColor(color);
 }
 
+
 void Ili9341::FillRect(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t color) {
   if ((x >= m_width) || (y >= m_height)) {
       return;
@@ -398,6 +399,41 @@ void Ili9341::FillRect(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t co
 
   SetAddrWindow(x, y, w, h);
   PushColor(color, w * h);
+}
+
+void Ili9341::FillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
+	WriteFastVLine(x0, y0-r, 2*r+1, color);
+	FillCircleHelper(x0, y0, r, 3, 0, color);
+}
+
+void Ili9341::FillCircleHelper(int16_t x0, int16_t y0, int16_t r,
+	    uint8_t cornername, int16_t delta, uint16_t color) {
+
+	  int16_t f     = 1 - r;
+	  int16_t ddF_x = 1;
+	  int16_t ddF_y = -2 * r;
+	  int16_t x     = 0;
+	  int16_t y     = r;
+
+	  while (x<y) {
+	    if (f >= 0) {
+	      y--;
+	      ddF_y += 2;
+	      f     += ddF_y;
+	    }
+	    x++;
+	    ddF_x += 2;
+	    f     += ddF_x;
+
+	    if (cornername & 0x1) {
+	      WriteFastVLine(x0+x, y0-y, 2*y+1+delta, color);
+	      WriteFastVLine(x0+y, y0-x, 2*x+1+delta, color);
+	    }
+	    if (cornername & 0x2) {
+	      WriteFastVLine(x0-x, y0-y, 2*y+1+delta, color);
+	      WriteFastVLine(x0-y, y0-x, 2*x+1+delta, color);
+	    }
+	  }
 }
 
 void Ili9341::WriteBitmap(int16_t x, int16_t y, uint16_t w, uint16_t h, uint8_t *buf, uint32_t len) {
@@ -617,6 +653,12 @@ QState Ili9341::Busy(Ili9341 * const me, QEvt const * const e) {
             EVENT(e);
             DispDrawRectReq const &req = static_cast<DispDrawRectReq const &>(*e);
             me->FillRect(req.GetX(), req.GetY(), req.GetW(), req.GetH(), Color565(req.GetColor()));
+            return Q_HANDLED();
+        }
+        case DISP_DRAW_CIRCLE_REQ: {
+            EVENT(e);
+            DispDrawCircleReq const &req = static_cast<DispDrawCircleReq const &>(*e);
+            me->FillCircle(req.GetX(), req.GetY(), req.GetR(), Color565(req.GetColor()));
             return Q_HANDLED();
         }
     }

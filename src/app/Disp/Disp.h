@@ -116,6 +116,8 @@ protected:
     virtual void WritePixel(int16_t x, int16_t y, uint16_t color) { (void)x; (void)y; (void)color; };
     virtual void FillRect(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t color) { (void)x; (void)y; (void)w; (void)h; (void)color; };
     virtual void WriteBitmap(int16_t x, int16_t y, uint16_t w, uint16_t h, uint8_t *buf, uint32_t len) { (void)x; (void)y; (void)w; (void)h; (void)buf; (void)len; };
+    virtual void FillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) { (void)x0; (void)y0; (void)r; (void)color; };
+    virtual void FillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int16_t delta, uint16_t color) { (void)x0; (void)y0; (void)r; (void)cornername; (void)delta; (void)color; };
 
     // High-level graphical functions for use by state-machines of derived classes.
     void WriteFastVLine(int16_t x, int16_t y, int16_t len, uint16_t color) { FillRect(x, y, 1, len, color); }
@@ -134,6 +136,7 @@ protected:
     void SetFont(const GFXfont *f);
     void CharBounds(char c, int16_t *x, int16_t *y, int16_t *minx, int16_t *miny, int16_t *maxx, int16_t *maxy);
     void GetTextBounds(char *str, int16_t x, int16_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h);
+
 
     int16_t m_cursorX;
     int16_t m_cursorY;

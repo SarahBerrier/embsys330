@@ -341,4 +341,6 @@ void Disp::GetTextBounds(char *str, int16_t x, int16_t y, int16_t *x1, int16_t *
     }
 }
 
+
+
 } // namespace APP

@@ -47,28 +47,60 @@ FW_DEFINE_THIS_FILE("ElevatorCmd.cpp")
 
 namespace APP {
 
-static CmdStatus NorthSouth(Console &console, Evt const *e) {
+static CmdStatus First(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
-            console.PutStr("Car arriving in NS direction\n\r");
-            console.Send(new ElevatorCarNSReq(), ELEVATOR);
+            console.PutStr("Elevator request for first floor\n\r");
+            console.Send(new ElevatorMoveReq(1), ELEVATOR);
             break;
         }
     }
     return CMD_DONE;
 }
 
-static CmdStatus EastWest(Console &console, Evt const *e) {
+static CmdStatus Second(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
-            console.PutStr("Car arriving in EW direction\n\r");
-            console.Send(new ElevatorCarEWReq(), ELEVATOR);
+            console.PutStr("Elevator request for second floor\n\r");
+            console.Send(new ElevatorMoveReq(2), ELEVATOR);
             break;
         }
     }
     return CMD_DONE;
 }
 
+static CmdStatus Third(Console &console, Evt const *e) {
+    switch (e->sig) {
+        case Console::CONSOLE_CMD: {
+            console.PutStr("Elevator request for third floor\n\r");
+            console.Send(new ElevatorMoveReq(3), ELEVATOR);
+            break;
+        }
+    }
+    return CMD_DONE;
+}
+
+static CmdStatus Fourth(Console &console, Evt const *e) {
+    switch (e->sig) {
+        case Console::CONSOLE_CMD: {
+            console.PutStr("Elevator request for fourth floor\n\r");
+            console.Send(new ElevatorMoveReq(4), ELEVATOR);
+            break;
+        }
+    }
+    return CMD_DONE;
+}
+
+static CmdStatus Fifth(Console &console, Evt const *e) {
+    switch (e->sig) {
+        case Console::CONSOLE_CMD: {
+            console.PutStr("Elevator request for fifth floor\n\r");
+            console.Send(new ElevatorMoveReq(5), ELEVATOR);
+            break;
+        }
+    }
+    return CMD_DONE;
+}
 static CmdStatus ErrorReq(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
@@ -82,12 +114,13 @@ static CmdStatus ErrorReq(Console &console, Evt const *e) {
 
 static CmdStatus List(Console &console, Evt const *e);
 static CmdHandler const cmdHandler[] = {
-    { "n",       NorthSouth,       "North", 0 },
-    { "s",       NorthSouth,       "South", 0 },
-    { "e",       EastWest,         "East", 0 },
-    { "w",       EastWest,         "West", 0 },
-    { "r",       ErrorReq,         "Error", 0 },
-    { "?",       List,             "List commands", 0 },
+    { "1",       First,       "First", 0 },
+    { "2",       Second,      "Second", 0 },
+    { "3",       Third,       "Third", 0 },
+    { "4",       Fourth,      "Fourth", 0 },
+    { "5",       Fifth,       "Fifth", 0 },
+    { "r",       ErrorReq,    "Error", 0 },
+    { "?",       List,        "List commands", 0 },
 };
 
 static CmdStatus List(Console &console, Evt const *e) {

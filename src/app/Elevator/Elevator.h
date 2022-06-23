@@ -60,38 +60,22 @@ protected:
     static QState Root(Elevator * const me, QEvt const * const e);
         static QState Stopped(Elevator * const me, QEvt const * const e);
         static QState Started(Elevator * const me, QEvt const * const e);
-           static QState NSGo(Elevator * const me, QEvt const * const e);
-               static QState NSMinTimeWait(Elevator * const me, QEvt const * const e);
-               static QState NSMinTimeExceeded(Elevator * const me, QEvt const * const e);
-           static QState NSSlow(Elevator * const me, QEvt const * const e);
-           static QState EWGo(Elevator * const me, QEvt const * const e);
-               static QState EWMinTimeWait(Elevator * const me, QEvt const * const e);
-               static QState EWMinTimeExceeded(Elevator * const me, QEvt const * const e);
-           static QState EWSlow(Elevator * const me, QEvt const * const e);
-           static QState StopSign(Elevator * const me, QEvt const * const e);
-               static QState StopSignOn(Elevator * const me, QEvt const * const e);
-               static QState StopSignOff(Elevator * const me, QEvt const * const e);
-
-    Lamp m_lampNS;          // Orthogonal region for the NS lamp.
-    Lamp m_lampEW;          // Orthogonal region for the EW lamp.
-    bool m_carWaiting;      // Remembers if a car is waiting in either NS or EW direction.
+           static QState MovingUp(Elevator * const me, QEvt const * const e);
+           static QState MovingDown(Elevator * const me, QEvt const * const e);
+           static QState DoorOpened(Elevator * const me, QEvt const * const e);
+           static QState DoorClosed(Elevator * const me, QEvt const * const e);
+           static QState Idle(Elevator * const me, QEvt const * const e);
 
     enum {
-        NS_MIN_WAIT_TIMEOUT_MS = 20000,
-        NS_SLOW_TIMEOUT_MS     = 3000,
-        EW_MIN_WAIT_TIMEOUT_MS = 10000,
-        EW_SLOW_TIMEOUT_MS     = 3000,
-        EW_IDLE_TIMEOUT_MS     = 15000,
-        BLINK_TIMEOUT_MS       = 1000
+    	DOOR_WAIT_TIMEOUT_MS = 3000
     };
-    Timer m_waitTimer;       // Timer used to wait for the minimum wait duration or the yellow light (slow-down) duration in either direction.
-    Timer m_idleTimer;       // Timer used to detect idle condition in EW direction.
-    Timer m_blinkTimer;      // Timer used to blink a stop sign.
+    Timer m_waitTimer;         // Timer used to wait for the minimum wait duration or the yellow light (slow-down) duration in either direction.
+    uint32_t m_currentFloor;   // used to tell what floor the elevator is currently on.
+    uint32_t m_requestedFloor; // used to tell what floor is currently requested.
+    bool m_isDoorOpen;         // used to tell if the elevator door is currently open.
 
 #define ELEVATOR_TIMER_EVT \
     ADD_EVT(WAIT_TIMER) \
-    ADD_EVT(IDLE_TIMER) \
-    ADD_EVT(BLINK_TIMER)
 
 // Placeholder only.
 #define ELEVATOR_INTERNAL_EVT \

@@ -47,11 +47,15 @@ FW_DEFINE_THIS_FILE("ElevatorCmd.cpp")
 
 namespace APP {
 
+static bool IsInsideElevator(Console &console, Evt const *e);
+
+//Sarah - do I want to add a CFM for each of these methods like i see in gpiooutcmd.cpp??
 static CmdStatus First(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
             console.PutStr("Elevator request for first floor\n\r");
-            console.Send(new ElevatorMoveReq(1), ELEVATOR);
+            bool isInsideElevator = IsInsideElevator(console, e);
+            console.Send(new ElevatorMoveReq(1, isInsideElevator), ELEVATOR);
             break;
         }
     }
@@ -62,7 +66,8 @@ static CmdStatus Second(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
             console.PutStr("Elevator request for second floor\n\r");
-            console.Send(new ElevatorMoveReq(2), ELEVATOR);
+            bool isInsideElevator = IsInsideElevator(console, e);
+            console.Send(new ElevatorMoveReq(2, isInsideElevator), ELEVATOR);
             break;
         }
     }
@@ -73,7 +78,8 @@ static CmdStatus Third(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
             console.PutStr("Elevator request for third floor\n\r");
-            console.Send(new ElevatorMoveReq(3), ELEVATOR);
+            bool isInsideElevator = IsInsideElevator(console, e);
+            console.Send(new ElevatorMoveReq(3, isInsideElevator), ELEVATOR);
             break;
         }
     }
@@ -84,7 +90,8 @@ static CmdStatus Fourth(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
             console.PutStr("Elevator request for fourth floor\n\r");
-            console.Send(new ElevatorMoveReq(4), ELEVATOR);
+            bool isInsideElevator = IsInsideElevator(console, e);
+            console.Send(new ElevatorMoveReq(4, isInsideElevator), ELEVATOR);
             break;
         }
     }
@@ -95,7 +102,8 @@ static CmdStatus Fifth(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
             console.PutStr("Elevator request for fifth floor\n\r");
-            console.Send(new ElevatorMoveReq(5), ELEVATOR);
+            bool isInsideElevator = IsInsideElevator(console, e);
+            console.Send(new ElevatorMoveReq(5, isInsideElevator), ELEVATOR);
             break;
         }
     }
@@ -125,6 +133,15 @@ static CmdHandler const cmdHandler[] = {
 
 static CmdStatus List(Console &console, Evt const *e) {
     return console.ListCmd(e, cmdHandler, ARRAY_COUNT(cmdHandler));
+}
+
+static bool IsInsideElevator(Console &console, Evt const *e) {
+	bool isInsideElevator = false;
+    Console::ConsoleCmd const &ind = static_cast<Console::ConsoleCmd const &>(*e);
+    if (ind.Argc() >= 2 && STRING_EQUAL(ind.Argv(1), "1")) {
+        isInsideElevator = true;
+    }
+    return isInsideElevator;
 }
 
 CmdStatus ElevatorCmd(Console &console, Evt const *e) {

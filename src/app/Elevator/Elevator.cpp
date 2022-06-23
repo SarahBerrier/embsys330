@@ -1,4 +1,3 @@
-/*******************************************************************************
  * Copyright (C) Gallium Studio LLC. All rights reserved.
  *
  * This program is open source software: you can redistribute it and/or
@@ -68,9 +67,8 @@ static char const * const interfaceEvtName[] = {
 
 Elevator::Elevator() :
     Active((QStateHandler)&Elevator::InitialPseudoState, ELEVATOR, "ELEVATOR"),
-    m_lampNS(LAMP_NS, "LAMP_NS"), m_lampEW(LAMP_EW, "LAMP_EW"),
-    m_carWaiting(false), m_waitTimer(GetHsmn(), WAIT_TIMER),
-    m_idleTimer(GetHsmn(), IDLE_TIMER), m_blinkTimer(GetHsmn(), BLINK_TIMER){
+	m_waitTimer(GetHsmn(), WAIT_TIMER), m_currentFloor(1),
+	m_requestedFloor(1), m_isDoorOpen(false){
     SET_EVT_NAME(ELEVATOR);
 }
 
@@ -83,9 +81,6 @@ QState Elevator::Root(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
-            // Initialize regions.
-            me->m_lampNS.Init(me);
-            me->m_lampEW.Init(me);
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
@@ -140,6 +135,9 @@ QState Elevator::Stopped(Elevator * const me, QEvt const * const e) {
 QState Elevator::Started(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
+            LOG("Elevator::Started::Q_ENTRY_SIG");
+            //me->m_currentFloor = 1;// truly the elevator could start on any floor Sarah... Fix this later
+        	//me->m_requestedFloor = 1;
             EVENT(e);
             return Q_HANDLED();
         }
@@ -148,15 +146,25 @@ QState Elevator::Started(Elevator * const me, QEvt const * const e) {
             return Q_HANDLED();
         }
         case Q_INIT_SIG: {
-            return Q_TRAN(&Elevator::NSGo);
+            return Q_TRAN(&Elevator::Idle);
+        }
+        case ELEVATOR_MOVE_REQ: {
+            LOG("Elevator::Started::ELEVATOR_MOVE_REQ");
+            ElevatorMoveReq const &req = static_cast<ElevatorMoveReq const &>(*e);
+            me->m_requestedFloor = req.GetFloorRequested();
+			req.IsInsideElevator(); // Sarah - use this?
+
+			if(me->m_requestedFloor == me->m_currentFloor){
+				return Q_TRAN(&Elevator::DoorOpened);
+			} else if (me->m_requestedFloor > me->m_currentFloor){
+				return Q_TRAN(&Elevator::MovingUp);
+			} else {
+				return Q_TRAN(&Elevator::MovingDown);
+			}
         }
         case ELEVATOR_STOP_REQ: {
             EVENT(e);
             Evt const &req = EVT_CAST(*e);
-
-            // @todo Need to wait for response.
-            me->Send(new LampResetReq(), LAMP_NS);
-            me->Send(new LampResetReq(), LAMP_EW);
 
             // @todo Need to wait for response.
             me->Send(new DispStopReq(), ILI9341);
@@ -165,253 +173,125 @@ QState Elevator::Started(Elevator * const me, QEvt const * const e) {
         }
         case ELEVATOR_ERROR_REQ: {
             EVENT(e);
-            return Q_TRAN(&Elevator::StopSign);
+            return Q_HANDLED();
+            //return Q_TRAN(&Elevator::StopSign); sarah to do something better here
         }
     }
     return Q_SUPER(&Elevator::Root);
 }
 
-QState Elevator::NSGo(Elevator *me, QEvt const *e) {
+QState Elevator::MovingUp(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
+            LOG("Elevator::MovingUp::Q_ENTRY_SIG");
             EVENT(e);
-            me->Send(new LampRedReq(), LAMP_EW);
-            me->Send(new LampGreenReq(), LAMP_NS);
-            return Q_HANDLED();
-        }
-        case Q_EXIT_SIG: {
-            EVENT(e);
-            return Q_HANDLED();
-        }
-        case Q_INIT_SIG: {
-            return Q_TRAN(&Elevator::NSMinTimeWait);
-        }
-        case ELEVATOR_CAR_EW_REQ: {
-            EVENT(e);
-            return Q_TRAN(&Elevator::NSSlow);
-        }
-    }
-    return Q_SUPER(&Elevator::Started);;
-}
 
-QState Elevator::NSMinTimeWait(Elevator *me, QEvt const *e) {
-    switch (e->sig) {
-        case Q_ENTRY_SIG: {
-            EVENT(e);
-            me->m_carWaiting = false;
-            me->m_waitTimer.Start(NS_MIN_WAIT_TIMEOUT_MS);
-            return Q_HANDLED();
-        }
-        case Q_EXIT_SIG: {
-            EVENT(e);
-            if (me->m_carWaiting) {
-                me->Send(new ElevatorCarEWReq(), me->GetHsmn());
+            while(me->m_requestedFloor > me->m_currentFloor)
+            {
+                LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
+            	me->m_currentFloor++;
+                // Draw something sarah, maybe a lil wait too
             }
-            me->m_waitTimer.Stop();
-            return Q_HANDLED();
-        }
-        case ELEVATOR_CAR_EW_REQ: {
-            EVENT(e);
-            me->m_carWaiting = true;
-            return Q_HANDLED();
-        }
-        case WAIT_TIMER: {
-            EVENT(e);
-            return Q_TRAN(&Elevator::NSMinTimeExceeded);
-        }
-    }
-    return Q_SUPER(&Elevator::NSGo);;
-}
+            LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
 
-QState Elevator::NSMinTimeExceeded(Elevator *me, QEvt const *e) {
-    switch (e->sig) {
-        case Q_ENTRY_SIG: {
-            EVENT(e);
-            return Q_HANDLED();
-        }
+            return Q_TRAN(&Elevator::DoorOpened);
+       }
         case Q_EXIT_SIG: {
             EVENT(e);
             return Q_HANDLED();
-        }
-    }
-    return Q_SUPER(&Elevator::NSGo);;
-}
-
-QState Elevator::NSSlow(Elevator *me, QEvt const *e) {
-    switch (e->sig) {
-        case Q_ENTRY_SIG: {
-            EVENT(e);
-            me->Send(new LampYellowReq(), LAMP_NS);
-            me->m_waitTimer.Start(NS_SLOW_TIMEOUT_MS);
-            return Q_HANDLED();
-        }
-        case Q_EXIT_SIG: {
-            EVENT(e);
-            me->m_waitTimer.Stop();
-            return Q_HANDLED();
-        }
-        case WAIT_TIMER: {
-            EVENT(e);
-            return Q_TRAN(&Elevator::EWGo);
         }
     }
     return Q_SUPER(&Elevator::Started);
 }
 
-QState Elevator::EWGo(Elevator *me, QEvt const *e) {
-    switch (e->sig)
-    {
-        case Q_ENTRY_SIG: {
-            EVENT(e);
-            me->Send(new LampRedReq(), LAMP_NS);
-            me->Send(new LampGreenReq(), LAMP_EW);
-            me->m_idleTimer.Start(EW_IDLE_TIMEOUT_MS);
-            return Q_HANDLED();
-        }
-        case Q_EXIT_SIG: {
-            EVENT(e);
-            me->m_idleTimer.Stop();
-            return Q_HANDLED();
-        }
-        case Q_INIT_SIG: {
-            return Q_TRAN(&Elevator::EWMinTimeWait);
-        }
-        case ELEVATOR_CAR_EW_REQ: {
-            EVENT(e);
-            me->m_idleTimer.Restart(EW_IDLE_TIMEOUT_MS);
-            return Q_HANDLED();
-        }
-        case ELEVATOR_CAR_NS_REQ:
-        case IDLE_TIMER: {
-            EVENT(e);
-            return Q_TRAN(&Elevator::EWSlow);
-        }
-    }
-    return Q_SUPER(&Elevator::Started);
-}
-
-QState Elevator::EWMinTimeWait(Elevator *me, QEvt const *e) {
+QState Elevator::MovingDown(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
+            LOG("Elevator::MovingDown::Q_ENTRY_SIG");
             EVENT(e);
-            me->m_carWaiting = false;
-            me->m_waitTimer.Start(EW_MIN_WAIT_TIMEOUT_MS);
-            return Q_HANDLED();
-        }
-        case Q_EXIT_SIG: {
-            EVENT(e);
-            if (me->m_carWaiting) {
-                me->Send(new ElevatorCarNSReq(), me->GetHsmn());
+
+            while(me->m_requestedFloor < me->m_currentFloor)
+            {
+                LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
+            	me->m_currentFloor--;
+                // Draw something sarah, maybe a lil wait too
             }
+            LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
+
+            return Q_TRAN(&Elevator::DoorOpened);
+       }
+        case Q_EXIT_SIG: {
+            EVENT(e);
+            return Q_HANDLED();
+        }
+    }
+    return Q_SUPER(&Elevator::Started);
+}
+
+QState Elevator::DoorOpened(Elevator *me, QEvt const *e) {
+    switch (e->sig) {
+        case Q_ENTRY_SIG: {
+            EVENT(e);
+            LOG("Elevator::DoorOpened::Q_ENTRY_SIG");
+
+            // draw something Sarah //me->Send(new LampYellowReq(), LAMP_NS);
+            me->m_isDoorOpen = true;
+            me->m_waitTimer.Start(DOOR_WAIT_TIMEOUT_MS);
+            return Q_HANDLED();
+        }
+        case Q_EXIT_SIG: {
+            EVENT(e);
             me->m_waitTimer.Stop();
             return Q_HANDLED();
         }
-        case ELEVATOR_CAR_NS_REQ: {
-            EVENT(e);
-            me->m_carWaiting = true;
-            return Q_HANDLED();
-        }
         case WAIT_TIMER: {
             EVENT(e);
-            return Q_TRAN(&Elevator::EWMinTimeExceeded);
-        }
-    }
-    return Q_SUPER(&Elevator::EWGo);
-}
-
-QState Elevator::EWMinTimeExceeded(Elevator *me, QEvt const *e) {
-    switch (e->sig) {
-        case Q_ENTRY_SIG: {
-            EVENT(e);
-            return Q_HANDLED();
-        }
-        case Q_EXIT_SIG: {
-            EVENT(e);
-            return Q_HANDLED();
-        }
-    }
-    return Q_SUPER(&Elevator::EWGo);
-}
-
-QState Elevator::EWSlow(Elevator *me, QEvt const *e) {
-    switch (e->sig) {
-        case Q_ENTRY_SIG: {
-            EVENT(e);
-            me->Send(new LampYellowReq(), LAMP_EW);
-            me->m_waitTimer.Start(EW_SLOW_TIMEOUT_MS);
-            return Q_HANDLED();
-        }
-        case Q_EXIT_SIG: {
-            EVENT(e);
-            me->m_waitTimer.disarm();
-            return Q_HANDLED();
-        }
-        case WAIT_TIMER: {
-            EVENT(e);
-            return Q_TRAN(&Elevator::NSGo);
+            return Q_TRAN(&Elevator::DoorClosed);
         }
     }
     return Q_SUPER(&Elevator::Started);
 }
 
-QState Elevator::StopSign(Elevator * const me, QEvt const * const e) {
+QState Elevator::DoorClosed(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
-            me->m_blinkTimer.Start(BLINK_TIMEOUT_MS, Timer::PERIODIC);
+            LOG("Elevator::DoorClosed::Q_ENTRY_SIG");
+
+            // draw something Sarah //me->Send(new LampYellowReq(), LAMP_NS);
+            me->m_isDoorOpen = false;
+            me->m_waitTimer.Start(DOOR_WAIT_TIMEOUT_MS);
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
             EVENT(e);
-            me->m_blinkTimer.Stop();
+            me->m_waitTimer.Stop();
             return Q_HANDLED();
         }
-        case Q_INIT_SIG: {
+        case WAIT_TIMER: {
             EVENT(e);
-            return Q_TRAN(&Elevator::StopSignOn);
+            return Q_TRAN(&Elevator::Idle);
         }
     }
     return Q_SUPER(&Elevator::Started);
 }
 
-QState Elevator::StopSignOn(Elevator * const me, QEvt const * const e) {
+QState Elevator::Idle(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
-            me->Send(new LampRedReq(), LAMP_NS);
-            me->Send(new LampRedReq(), LAMP_EW);
-            return Q_HANDLED();
-        }
-        case Q_EXIT_SIG: {
-            EVENT(e);
-            return Q_HANDLED();
-        }
-        case BLINK_TIMER: {
-            EVENT(e);
-            return Q_TRAN(&Elevator::StopSignOff);
-        }
-    }
-    return Q_SUPER(&Elevator::StopSign);
-}
+            LOG("Elevator::Idle::Q_ENTRY_SIG");
 
-QState Elevator::StopSignOff(Elevator * const me, QEvt const * const e) {
-    switch (e->sig) {
-        case Q_ENTRY_SIG: {
-            EVENT(e);
-            me->Send(new LampOffReq(), LAMP_NS);
-            me->Send(new LampOffReq(), LAMP_EW);
+            // draw something Sarah
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
             EVENT(e);
             return Q_HANDLED();
         }
-        case BLINK_TIMER: {
-            EVENT(e);
-            return Q_TRAN(&Elevator::StopSignOn);
-        }
+        // sarah - do I need something else here?
     }
-    return Q_SUPER(&Elevator::StopSign);;
+    return Q_SUPER(&Elevator::Started);
 }
 
 /*

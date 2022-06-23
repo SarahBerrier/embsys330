@@ -54,8 +54,11 @@ namespace APP {
     ADD_EVT(ELEVATOR_STOP_REQ) \
     ADD_EVT(ELEVATOR_STOP_CFM) \
     ADD_EVT(ELEVATOR_ERROR_REQ) \
-    ADD_EVT(ELEVATOR_CAR_NS_REQ) \
-    ADD_EVT(ELEVATOR_CAR_EW_REQ)
+    ADD_EVT(ELEVATOR_MOVE_REQ) \
+    ADD_EVT(ELEVATOR_DOOR_OPEN_REQ) \
+    ADD_EVT(ELEVATOR_DOOR_CLOSE_REQ) \
+    ADD_EVT(ELEVATOR_IDLE_REQ) \
+
 
 #undef ADD_EVT
 #define ADD_EVT(e_) e_,
@@ -107,17 +110,36 @@ public:
 };
 
 // There is no accompanying CFM.
-class ElevatorCarNSReq : public Evt {
+class ElevatorMoveReq : public Evt {
 public:
-    ElevatorCarNSReq() :
-        Evt(ELEVATOR_CAR_NS_REQ) {}
+	ElevatorMoveReq(uint32_t floorReq, bool isInsideElevator = false) :
+        Evt(ELEVATOR_MOVE_REQ), m_floorReq(floorReq), m_isInsideElevator(isInsideElevator) {}
+    uint32_t GetFloorRequested() const { return m_floorReq; }
+    bool IsInsideElevator() const { return m_isInsideElevator; }
+private:
+    uint32_t m_floorReq;
+    bool m_isInsideElevator;
 };
 
 // There is no accompanying CFM.
-class ElevatorCarEWReq : public Evt {
+class ElevatorDoorOpenReq : public Evt {
 public:
-    ElevatorCarEWReq() :
-        Evt(ELEVATOR_CAR_EW_REQ) {}
+	ElevatorDoorOpenReq() :
+        Evt(ELEVATOR_DOOR_OPEN_REQ) {}
+};
+
+// There is no accompanying CFM.
+class ElevatorDoorCloseReq : public Evt {
+public:
+	ElevatorDoorCloseReq() :
+        Evt(ELEVATOR_DOOR_CLOSE_REQ) {}
+};
+
+// There is no accompanying CFM.
+class ElevatorIdleReq : public Evt {
+public:
+	ElevatorIdleReq() :
+        Evt(ELEVATOR_IDLE_REQ) {}
 };
 
 } // namespace APP

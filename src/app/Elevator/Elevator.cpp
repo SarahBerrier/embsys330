@@ -183,23 +183,35 @@ QState Elevator::MovingUp(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
-
-            while(me->m_requestedFloor > me->m_currentFloor)
-            {
-                LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
-                me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_WHITE), ILI9341);
-                me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
-             	me->m_currentFloor++;
-            }
-            LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
-            me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_WHITE), ILI9341);
-            me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
-
-            return Q_TRAN(&Elevator::DoorOpened);
+            me->m_waitTimer.Start(FlOOR_WAIT_TIMEOUT_MS);
+            return Q_HANDLED();
        }
         case Q_EXIT_SIG: {
             EVENT(e);
             return Q_HANDLED();
+        }
+        case WAIT_TIMER: {
+            EVENT(e);
+         	if (me->m_requestedFloor == me->m_currentFloor){
+                LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
+                return Q_TRAN(&Elevator::DoorOpened);
+         	}
+         	else {
+                me->Raise(new Evt(ELEVATOR_MOVE_UP_ONE_REQ));
+         	}
+            return Q_HANDLED();
+        }
+        case ELEVATOR_MOVE_UP_ONE_REQ: {
+            EVENT(e);
+            LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
+
+            me->m_currentFloor++;
+            me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_WHITE), ILI9341);
+            me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
+
+            me->m_waitTimer.Start(FlOOR_WAIT_TIMEOUT_MS);
+
+     		return Q_HANDLED();
         }
     }
     return Q_SUPER(&Elevator::Started);
@@ -209,22 +221,34 @@ QState Elevator::MovingDown(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
-
-            while(me->m_requestedFloor < me->m_currentFloor)
-            {
-                LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
-                me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_WHITE), ILI9341);
-                me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
-                me->m_currentFloor--;
-            }
-            LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
-            me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_WHITE), ILI9341);
-            me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
-
-            return Q_TRAN(&Elevator::DoorOpened);
+            me->m_waitTimer.Start(FlOOR_WAIT_TIMEOUT_MS);
+            return Q_HANDLED();
        }
         case Q_EXIT_SIG: {
             EVENT(e);
+            return Q_HANDLED();
+        }
+        case WAIT_TIMER: {
+            EVENT(e);
+         	if (me->m_requestedFloor == me->m_currentFloor){
+                LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
+                return Q_TRAN(&Elevator::DoorOpened);
+         	}
+            else {
+                me->Raise(new Evt(ELEVATOR_MOVE_DOWN_ONE_REQ));
+            }
+            return Q_HANDLED();
+        }
+        case ELEVATOR_MOVE_DOWN_ONE_REQ: {
+            EVENT(e);
+            LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
+
+            me->m_currentFloor--;
+            me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_WHITE), ILI9341);
+            me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
+
+            me->m_waitTimer.Start(FlOOR_WAIT_TIMEOUT_MS);
+
             return Q_HANDLED();
         }
     }

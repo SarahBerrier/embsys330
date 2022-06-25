@@ -67,12 +67,14 @@ protected:
            static QState Idle(Elevator * const me, QEvt const * const e);
 
     enum {
-    	DOOR_WAIT_TIMEOUT_MS = 3000
+    	DOOR_WAIT_TIMEOUT_MS = 1500
     };
     Timer m_waitTimer;         // Timer used to wait for the minimum wait duration or the yellow light (slow-down) duration in either direction.
     uint32_t m_currentFloor;   // used to tell what floor the elevator is currently on.
     uint32_t m_requestedFloor; // used to tell what floor is currently requested.
     bool m_isDoorOpen;         // used to tell if the elevator door is currently open.
+
+    const uint32_t floorY[5] = {250, 190, 130, 70, 10};  // Y values for drawing the elevator location based on floor.
 
 #define ELEVATOR_TIMER_EVT \
     ADD_EVT(WAIT_TIMER) \

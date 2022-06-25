@@ -55,6 +55,8 @@ namespace APP {
     ADD_EVT(ELEVATOR_STOP_CFM) \
     ADD_EVT(ELEVATOR_ERROR_REQ) \
     ADD_EVT(ELEVATOR_MOVE_REQ) \
+    ADD_EVT(ELEVATOR_MOVE_UP_ONE_REQ) \
+    ADD_EVT(ELEVATOR_MOVE_DOWN_ONE_REQ) \
     ADD_EVT(ELEVATOR_DOOR_OPEN_REQ) \
     ADD_EVT(ELEVATOR_DOOR_CLOSE_REQ) \
     ADD_EVT(ELEVATOR_IDLE_REQ) \
@@ -119,6 +121,20 @@ public:
 private:
     uint32_t m_floorReq;
     bool m_isInsideElevator;
+};
+
+// There is no accompanying CFM.
+class ElevatorMoveUpOneReq : public Evt {
+public:
+	ElevatorMoveUpOneReq() :
+        Evt(ELEVATOR_MOVE_UP_ONE_REQ){}
+};
+
+// There is no accompanying CFM.
+class ElevatorMoveDownOneReq : public Evt {
+public:
+	ElevatorMoveDownOneReq() :
+        Evt(ELEVATOR_MOVE_DOWN_ONE_REQ){}
 };
 
 // There is no accompanying CFM.

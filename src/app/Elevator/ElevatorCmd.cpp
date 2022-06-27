@@ -135,7 +135,7 @@ static CmdStatus List(Console &console, Evt const *e) {
 }
 
 static bool IsInsideElevator(Console &console, Evt const *e) {// do i need this sarah?
-	bool isInsideElevator = false;
+    bool isInsideElevator = false;
     Console::ConsoleCmd const &ind = static_cast<Console::ConsoleCmd const &>(*e);
     if (ind.Argc() >= 2 && STRING_EQUAL(ind.Argv(1), "1")) {
         isInsideElevator = true;

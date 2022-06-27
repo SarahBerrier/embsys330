@@ -1,3 +1,4 @@
+/*******************************************************************************
  * Copyright (C) Gallium Studio LLC. All rights reserved.
  *
  * This program is open source software: you can redistribute it and/or
@@ -67,8 +68,8 @@ static char const * const interfaceEvtName[] = {
 
 Elevator::Elevator() :
     Active((QStateHandler)&Elevator::InitialPseudoState, ELEVATOR, "ELEVATOR"),
-	m_waitTimer(GetHsmn(), WAIT_TIMER), m_currentFloor(1),
-	m_requestedFloor(1), m_isDoorOpen(false){
+    m_waitTimer(GetHsmn(), WAIT_TIMER), m_currentFloor(1),
+    m_requestedFloor(1), m_isDoorOpen(false){
     SET_EVT_NAME(ELEVATOR);
 }
 
@@ -152,18 +153,18 @@ QState Elevator::Started(Elevator * const me, QEvt const * const e) {
         case ELEVATOR_MOVE_REQ: {
             ElevatorMoveReq const &req = static_cast<ElevatorMoveReq const &>(*e);
             me->m_requestedFloor = req.GetFloorRequested();
-			req.IsInsideElevator(); // Sarah - use this?
+            req.IsInsideElevator(); // Sarah - use this?
 
-			if(me->m_requestedFloor == me->m_currentFloor){
-	            me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
+            if(me->m_requestedFloor == me->m_currentFloor){
+                me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
                 return Q_TRAN(&Elevator::DoorOpened);
-			} else if (me->m_requestedFloor > me->m_currentFloor){
-	            me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
-				return Q_TRAN(&Elevator::MovingUp);
-			} else {
-	            me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
-				return Q_TRAN(&Elevator::MovingDown);
-			}
+            } else if (me->m_requestedFloor > me->m_currentFloor){
+                me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
+                return Q_TRAN(&Elevator::MovingUp);
+            } else {
+                me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
+                return Q_TRAN(&Elevator::MovingDown);
+            }
         }
         case ELEVATOR_STOP_REQ: {
             EVENT(e);
@@ -195,13 +196,13 @@ QState Elevator::MovingUp(Elevator *me, QEvt const *e) {
         }
         case WAIT_TIMER: {
             EVENT(e);
-         	if (me->m_requestedFloor == me->m_currentFloor){
+             if (me->m_requestedFloor == me->m_currentFloor){
                 LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
                 return Q_TRAN(&Elevator::DoorOpened);
-         	}
-         	else {
+             }
+             else {
                 me->Raise(new Evt(ELEVATOR_MOVE_UP_ONE_REQ));
-         	}
+             }
             return Q_HANDLED();
         }
         case ELEVATOR_MOVE_UP_ONE_REQ: {
@@ -214,7 +215,7 @@ QState Elevator::MovingUp(Elevator *me, QEvt const *e) {
 
             me->m_waitTimer.Start(FlOOR_WAIT_TIMEOUT_MS);
 
-     		return Q_HANDLED();
+             return Q_HANDLED();
         }
     }
     return Q_SUPER(&Elevator::Started);
@@ -233,10 +234,10 @@ QState Elevator::MovingDown(Elevator *me, QEvt const *e) {
         }
         case WAIT_TIMER: {
             EVENT(e);
-         	if (me->m_requestedFloor == me->m_currentFloor){
+             if (me->m_requestedFloor == me->m_currentFloor){
                 LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
                 return Q_TRAN(&Elevator::DoorOpened);
-         	}
+             }
             else {
                 me->Raise(new Evt(ELEVATOR_MOVE_DOWN_ONE_REQ));
             }

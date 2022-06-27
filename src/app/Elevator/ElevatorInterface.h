@@ -114,7 +114,7 @@ public:
 
 class ElevatorMoveReq : public Evt {
 public:
-	ElevatorMoveReq(uint32_t floorReq, bool isInsideElevator = false) :
+    ElevatorMoveReq(uint32_t floorReq, bool isInsideElevator = false) :
         Evt(ELEVATOR_MOVE_REQ), m_floorReq(floorReq), m_isInsideElevator(isInsideElevator) {}
     uint32_t GetFloorRequested() const { return m_floorReq; }
     bool IsInsideElevator() const { return m_isInsideElevator; }
@@ -125,7 +125,7 @@ private:
 
 class ElevatorMoveCfm : public ErrorEvt {
 public:
-	ElevatorMoveCfm(Error error, Hsmn origin = HSM_UNDEF, Reason reason = 0) :
+    ElevatorMoveCfm(Error error, Hsmn origin = HSM_UNDEF, Reason reason = 0) :
         ErrorEvt(ELEVATOR_MOVE_CFM, error, origin, reason) {}
 };
 
@@ -133,35 +133,35 @@ public:
 // There is no accompanying CFM.
 class ElevatorMoveUpOneReq : public Evt {
 public:
-	ElevatorMoveUpOneReq() :
+    ElevatorMoveUpOneReq() :
         Evt(ELEVATOR_MOVE_UP_ONE_REQ){}
 };
 
 // There is no accompanying CFM.
 class ElevatorMoveDownOneReq : public Evt {
 public:
-	ElevatorMoveDownOneReq() :
+    ElevatorMoveDownOneReq() :
         Evt(ELEVATOR_MOVE_DOWN_ONE_REQ){}
 };
 
 // There is no accompanying CFM.
 class ElevatorDoorOpenReq : public Evt {
 public:
-	ElevatorDoorOpenReq() :
+    ElevatorDoorOpenReq() :
         Evt(ELEVATOR_DOOR_OPEN_REQ) {}
 };
 
 // There is no accompanying CFM.
 class ElevatorDoorCloseReq : public Evt {
 public:
-	ElevatorDoorCloseReq() :
+    ElevatorDoorCloseReq() :
         Evt(ELEVATOR_DOOR_CLOSE_REQ) {}
 };
 
 // There is no accompanying CFM.
 class ElevatorIdleReq : public Evt {
 public:
-	ElevatorIdleReq() :
+    ElevatorIdleReq() :
         Evt(ELEVATOR_IDLE_REQ) {}
 };
 

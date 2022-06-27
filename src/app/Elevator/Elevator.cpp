@@ -1,4 +1,3 @@
-/*******************************************************************************
  * Copyright (C) Gallium Studio LLC. All rights reserved.
  *
  * This program is open source software: you can redistribute it and/or
@@ -125,6 +124,8 @@ QState Elevator::Stopped(Elevator * const me, QEvt const * const e) {
             // @todo Need to wait for response.
             me->Send(new DispStartReq(), ILI9341);
             me->Send(new DispDrawBeginReq(), ILI9341);
+            me->Send(new DispDrawRectReq(0, 0, 400, 400, COLOR24_DARK_GRAY), ILI9341);
+
 
             me->SendCfm(new ElevatorStartCfm(ERROR_SUCCESS), req);
             return Q_TRAN(&Elevator::Started);
@@ -136,7 +137,7 @@ QState Elevator::Stopped(Elevator * const me, QEvt const * const e) {
 QState Elevator::Started(Elevator * const me, QEvt const * const e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
-            me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
+            me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PINK), ILI9341);
 
             EVENT(e);
             return Q_HANDLED();
@@ -154,10 +155,13 @@ QState Elevator::Started(Elevator * const me, QEvt const * const e) {
 			req.IsInsideElevator(); // Sarah - use this?
 
 			if(me->m_requestedFloor == me->m_currentFloor){
-				return Q_TRAN(&Elevator::DoorOpened);
+	            me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
+                return Q_TRAN(&Elevator::DoorOpened);
 			} else if (me->m_requestedFloor > me->m_currentFloor){
+	            me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
 				return Q_TRAN(&Elevator::MovingUp);
 			} else {
+	            me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
 				return Q_TRAN(&Elevator::MovingDown);
 			}
         }
@@ -172,8 +176,7 @@ QState Elevator::Started(Elevator * const me, QEvt const * const e) {
         }
         case ELEVATOR_ERROR_REQ: {
             EVENT(e);
-            return Q_HANDLED();
-            //return Q_TRAN(&Elevator::StopSign); sarah to do something better here
+            return Q_TRAN(&Elevator::ErrorState);
         }
     }
     return Q_SUPER(&Elevator::Root);
@@ -206,7 +209,7 @@ QState Elevator::MovingUp(Elevator *me, QEvt const *e) {
             LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
 
             me->m_currentFloor++;
-            me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_WHITE), ILI9341);
+            me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_DARK_GRAY), ILI9341);
             me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
 
             me->m_waitTimer.Start(FlOOR_WAIT_TIMEOUT_MS);
@@ -244,7 +247,7 @@ QState Elevator::MovingDown(Elevator *me, QEvt const *e) {
             LOG("requested floor = %d, current floor = %d", me->m_requestedFloor, me->m_currentFloor);
 
             me->m_currentFloor--;
-            me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_WHITE), ILI9341);
+            me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_DARK_GRAY), ILI9341);
             me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
 
             me->m_waitTimer.Start(FlOOR_WAIT_TIMEOUT_MS);
@@ -261,7 +264,7 @@ QState Elevator::DoorOpened(Elevator *me, QEvt const *e) {
             EVENT(e);
 
             me->m_isDoorOpen = true;
-            me->Send(new DispDrawTextReq("Doors Open", 75, 135, COLOR24_BLACK, COLOR24_WHITE, 2), ILI9341);
+            me->Send(new DispDrawTextReq("Doors Open", 75, 135, COLOR24_BLACK, COLOR24_DARK_GRAY, 2), ILI9341);
             me->m_waitTimer.Start(DOOR_WAIT_TIMEOUT_MS);
             return Q_HANDLED();
         }
@@ -284,7 +287,7 @@ QState Elevator::DoorClosed(Elevator *me, QEvt const *e) {
             EVENT(e);
 
             me->m_isDoorOpen = false;
-            me->Send(new DispDrawTextReq("Doors Closed", 75, 135, COLOR24_BLACK, COLOR24_WHITE, 2), ILI9341);
+            me->Send(new DispDrawTextReq("Doors Closed", 75, 135, COLOR24_BLACK, COLOR24_DARK_GRAY, 2), ILI9341);
             me->m_waitTimer.Start(DOOR_WAIT_TIMEOUT_MS);
             return Q_HANDLED();
         }
@@ -314,6 +317,26 @@ QState Elevator::Idle(Elevator *me, QEvt const *e) {
             return Q_HANDLED();
         }
         // sarah - do I need something else here?
+    }
+    return Q_SUPER(&Elevator::Started);
+}
+
+QState Elevator::ErrorState(Elevator *me, QEvt const *e) {
+    switch (e->sig) {
+        case Q_ENTRY_SIG: {
+            EVENT(e);
+            me->Send(new DispDrawRectReq(0, 0, 400, 400, COLOR24_DARK_GRAY), ILI9341);
+            me->Send(new DispDrawTextReq("Error", 75, 135, COLOR24_RED, COLOR24_DARK_GRAY, 2), ILI9341);
+            return Q_HANDLED();
+        }
+        case Q_EXIT_SIG: {
+            EVENT(e);
+            return Q_HANDLED();
+        }
+        case ELEVATOR_MOVE_REQ: {
+            me->Send(new DispDrawRectReq(0, 0, 400, 400, COLOR24_DARK_GRAY), ILI9341);
+            me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
+        }
     }
     return Q_SUPER(&Elevator::Started);
 }

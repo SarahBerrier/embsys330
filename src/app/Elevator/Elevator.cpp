@@ -1,4 +1,3 @@
-/*******************************************************************************
  * Copyright (C) Gallium Studio LLC. All rights reserved.
  *
  * This program is open source software: you can redistribute it and/or
@@ -153,8 +152,9 @@ QState Elevator::Started(Elevator * const me, QEvt const * const e) {
         case ELEVATOR_MOVE_REQ: {
             ElevatorMoveReq const &req = static_cast<ElevatorMoveReq const &>(*e);
             me->m_requestedFloor = req.GetFloorRequested();
-            req.IsInsideElevator(); // Sarah - use this?
 
+            // todo sarah - the CFM doesn't do what I thought.  The wait is asynchronous...
+            // refactor to not use waits and fix race condition with multiple move requests
             if(me->m_requestedFloor == me->m_currentFloor){
                 me->SendCfm(new ElevatorMoveCfm(ERROR_SUCCESS), req);
                 return Q_TRAN(&Elevator::DoorOpened);
@@ -192,6 +192,7 @@ QState Elevator::MovingUp(Elevator *me, QEvt const *e) {
        }
         case Q_EXIT_SIG: {
             EVENT(e);
+            me->m_waitTimer.Stop();
             return Q_HANDLED();
         }
         case WAIT_TIMER: {
@@ -213,7 +214,7 @@ QState Elevator::MovingUp(Elevator *me, QEvt const *e) {
             me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_DARK_GRAY), ILI9341);
             me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
 
-            me->m_waitTimer.Start(FlOOR_WAIT_TIMEOUT_MS);
+            me->m_waitTimer.Restart(FlOOR_WAIT_TIMEOUT_MS);
 
              return Q_HANDLED();
         }
@@ -230,6 +231,7 @@ QState Elevator::MovingDown(Elevator *me, QEvt const *e) {
        }
         case Q_EXIT_SIG: {
             EVENT(e);
+            me->m_waitTimer.Stop();
             return Q_HANDLED();
         }
         case WAIT_TIMER: {
@@ -251,7 +253,7 @@ QState Elevator::MovingDown(Elevator *me, QEvt const *e) {
             me->Send(new DispDrawRectReq(0, 0, 60, 400, COLOR24_DARK_GRAY), ILI9341);
             me->Send(new DispDrawRectReq(10, me->floorY[me->m_currentFloor-1], 40, 40, COLOR24_PURPLE), ILI9341);
 
-            me->m_waitTimer.Start(FlOOR_WAIT_TIMEOUT_MS);
+            me->m_waitTimer.Restart(FlOOR_WAIT_TIMEOUT_MS);
 
             return Q_HANDLED();
         }
@@ -309,15 +311,12 @@ QState Elevator::Idle(Elevator *me, QEvt const *e) {
     switch (e->sig) {
         case Q_ENTRY_SIG: {
             EVENT(e);
-
-            // draw something Sarah
             return Q_HANDLED();
         }
         case Q_EXIT_SIG: {
             EVENT(e);
             return Q_HANDLED();
         }
-        // sarah - do I need something else here?
     }
     return Q_SUPER(&Elevator::Started);
 }

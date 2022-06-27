@@ -58,8 +58,6 @@ namespace APP {
     ADD_EVT(ELEVATOR_MOVE_CFM) \
     ADD_EVT(ELEVATOR_MOVE_UP_ONE_REQ) \
     ADD_EVT(ELEVATOR_MOVE_DOWN_ONE_REQ) \
-    ADD_EVT(ELEVATOR_DOOR_OPEN_REQ) \
-    ADD_EVT(ELEVATOR_DOOR_CLOSE_REQ) \
     ADD_EVT(ELEVATOR_IDLE_REQ) \
 
 
@@ -129,7 +127,6 @@ public:
         ErrorEvt(ELEVATOR_MOVE_CFM, error, origin, reason) {}
 };
 
-
 // There is no accompanying CFM.
 class ElevatorMoveUpOneReq : public Evt {
 public:
@@ -142,20 +139,6 @@ class ElevatorMoveDownOneReq : public Evt {
 public:
     ElevatorMoveDownOneReq() :
         Evt(ELEVATOR_MOVE_DOWN_ONE_REQ){}
-};
-
-// There is no accompanying CFM.
-class ElevatorDoorOpenReq : public Evt {
-public:
-    ElevatorDoorOpenReq() :
-        Evt(ELEVATOR_DOOR_OPEN_REQ) {}
-};
-
-// There is no accompanying CFM.
-class ElevatorDoorCloseReq : public Evt {
-public:
-    ElevatorDoorCloseReq() :
-        Evt(ELEVATOR_DOOR_CLOSE_REQ) {}
 };
 
 // There is no accompanying CFM.

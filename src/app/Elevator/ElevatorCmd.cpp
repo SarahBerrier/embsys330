@@ -134,7 +134,8 @@ static CmdStatus List(Console &console, Evt const *e) {
     return console.ListCmd(e, cmdHandler, ARRAY_COUNT(cmdHandler));
 }
 
-static bool IsInsideElevator(Console &console, Evt const *e) {// do i need this sarah?
+// todo sarah - leaving this in for now but I don't think it is needed
+static bool IsInsideElevator(Console &console, Evt const *e) {
     bool isInsideElevator = false;
     Console::ConsoleCmd const &ind = static_cast<Console::ConsoleCmd const &>(*e);
     if (ind.Argc() >= 2 && STRING_EQUAL(ind.Argv(1), "1")) {

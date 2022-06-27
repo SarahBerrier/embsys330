@@ -49,7 +49,6 @@ namespace APP {
 
 static bool IsInsideElevator(Console &console, Evt const *e);
 
-//Sarah - do I want to add a CFM for each of these methods like i see in gpiooutcmd.cpp??
 static CmdStatus First(Console &console, Evt const *e) {
     switch (e->sig) {
         case Console::CONSOLE_CMD: {
@@ -127,7 +126,7 @@ static CmdHandler const cmdHandler[] = {
     { "3",       Third,       "Third", 0 },
     { "4",       Fourth,      "Fourth", 0 },
     { "5",       Fifth,       "Fifth", 0 },
-    { "r",       ErrorReq,    "Error", 0 },
+    { "e",       ErrorReq,    "Error", 0 },
     { "?",       List,        "List commands", 0 },
 };
 
@@ -135,7 +134,7 @@ static CmdStatus List(Console &console, Evt const *e) {
     return console.ListCmd(e, cmdHandler, ARRAY_COUNT(cmdHandler));
 }
 
-static bool IsInsideElevator(Console &console, Evt const *e) {
+static bool IsInsideElevator(Console &console, Evt const *e) {// do i need this sarah?
 	bool isInsideElevator = false;
     Console::ConsoleCmd const &ind = static_cast<Console::ConsoleCmd const &>(*e);
     if (ind.Argc() >= 2 && STRING_EQUAL(ind.Argv(1), "1")) {
